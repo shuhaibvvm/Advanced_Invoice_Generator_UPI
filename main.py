@@ -204,6 +204,11 @@ def add_item_entry(item_description_entry, quantity_entry, rate_entry, treeview)
     if not invoice_number_entry.get():
         invoice_number_entry.insert(0, get_next_invoice_number())
 
+    item_description = item_description_entry.get().strip()
+    if not item_description:
+        messagebox.showerror("Invalid Input", "Item Description cannot be empty.")
+        return
+
     try:
         # Get and clean the input values by stripping spaces
         quantity = float(quantity_entry.get().strip()) if quantity_entry.get().strip() else None
@@ -219,10 +224,10 @@ def add_item_entry(item_description_entry, quantity_entry, rate_entry, treeview)
     sl_no = len(treeview.get_children()) + 1
 
     # Add the item to the list
-    items.append((sl_no, item_description_entry.get(), quantity, rate, round(total_amount, 2)))
+    items.append((sl_no, item_description, quantity, rate, round(total_amount, 2)))
 
     # Insert the item into the treeview (preview section)
-    treeview.insert("", "end", values=(sl_no, item_description_entry.get(), quantity, rate, round(total_amount, 2)))
+    treeview.insert("", "end", values=(sl_no, item_description, quantity, rate, round(total_amount, 2)))
 
     # Clear input fields
     item_description_entry.delete(0, tk.END)
@@ -426,10 +431,14 @@ def on_item_double_click(event):
 
 def update_item(selected_item):
     # Get the new values from the entry fields
-    item_description = item_description_entry.get()
+    item_description = item_description_entry.get().strip()
+    if not item_description:
+        messagebox.showerror("Invalid Input", "Item Description cannot be empty.")
+        return
+
     try:
-        quantity = float(quantity_entry.get())
-        rate = float(rate_entry.get())
+        quantity = float(quantity_entry.get().strip())
+        rate = float(rate_entry.get().strip())
     except ValueError:
         messagebox.showerror("Invalid Input", "Please enter valid numeric values for Quantity and Rate.")
         return

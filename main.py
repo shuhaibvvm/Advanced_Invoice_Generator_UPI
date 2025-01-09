@@ -242,6 +242,7 @@ def generate_invoice(treeview):
         # Proceed with invoice generation
         print("Generating invoice...")
 
+
 def on_generate_pdf_click():
     if not is_profile_filled():
         messagebox.showwarning(
@@ -270,11 +271,19 @@ def on_generate_pdf_click():
         return
 
     try:
-        generate_pdf(invoice_date, invoice_number, customer_name.title(), customer_address_line1.title(), customer_address_line2.title(), pin_code, contact)
+        generate_pdf(invoice_date, invoice_number, customer_name.title(), customer_address_line1.title(),
+                     customer_address_line2.title(), pin_code, contact)
         messagebox.showinfo("PDF Generated", "The PDF has been successfully generated and saved.")
+
+        # Update the invoice number to the next one
+        next_invoice_number = get_next_invoice_number()
+        invoice_number_entry.delete(0, tk.END)
+        invoice_number_entry.insert(0, next_invoice_number)
+
         clear_all()  # Clear all input fields after generating the PDF
     except Exception as e:
         messagebox.showerror("Error", f"An error occurred while generating the PDF: {e}")
+
 
 # Generate PDF button
 generate_pdf_button = ctk.CTkButton(input_frame, text="Generate PDF", fg_color="#27AE60", text_color="#ffffff",

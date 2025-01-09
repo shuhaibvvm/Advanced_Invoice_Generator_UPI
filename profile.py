@@ -16,7 +16,7 @@ default_profile = {
     "phone_no": "",
     "website": "",
     "facebook_instagram_id": "",
-    "pin_code": ""  # Added default value for pin code
+    "pin_code": ""
 }
 
 profile_form_open = False
@@ -33,7 +33,7 @@ def save_profile(business_name_entry, address_line_1_entry, address_line_2_entry
         "phone_no": phone_no_entry.get().lstrip(),
         "website": website_entry.get().lstrip(),
         "facebook_instagram_id": facebook_instagram_id_entry.get().lstrip(),
-        "pin_code": pin_code_entry.get().strip(),  # Save pin code
+        "pin_code": pin_code_entry.get().strip(),
     }
     with open(profile_file, 'w') as file:
         json.dump(profile, file)
@@ -54,11 +54,28 @@ def focus_next_widget(event):
     return "break"
 
 def validate_pin_code(pin_code):
-    # Basic validation: Check if the pin code is exactly 6 digits
     return pin_code.isdigit() and len(pin_code) == 6
 
+def validate_phone_number(phone_no):
+    return phone_no.isdigit() and len(phone_no) == 10
+
+def validate_email(email):
+    return email.endswith("@gmail.com")
+
+def switch_and_focus(section, entry):
+    show_frame(section)
+    entry.focus_set()
+
+def show_frame(frame_name):
+    for name, button in nav_buttons.items():
+        button.configure(fg_color="#808080")
+    nav_buttons[frame_name].configure(fg_color="#007acc")
+    for frame in frames.values():
+        frame.pack_forget()
+    frames[frame_name].pack(fill="both", expand=True, padx=20, pady=20)
+
 def open_profile_form():
-    global profile_form_open
+    global profile_form_open, nav_buttons, frames
     if profile_form_open:
         return
     profile_form_open = True
@@ -70,7 +87,7 @@ def open_profile_form():
     form_window.attributes('-topmost', 1)
     form_window.protocol("WM_DELETE_WINDOW", lambda: close_form(form_window))
 
-    form_window.geometry("730x725")  # Adjusted window size
+    form_window.geometry("730x725")
     form_window.resizable(False, False)
 
     # Main Frame
@@ -90,14 +107,6 @@ def open_profile_form():
     nav_buttons = {}
     frames = {}
 
-    def show_frame(frame_name):
-        for name, button in nav_buttons.items():
-            button.configure(fg_color="#808080")  # Reset all buttons
-        nav_buttons[frame_name].configure(fg_color="#007acc")  # Highlight active button
-        for frame in frames.values():
-            frame.pack_forget()  # Hide all frames
-        frames[frame_name].pack(fill="both", expand=True, padx=20, pady=20)  # Show active frame
-
     # Add navigation buttons
     for idx, name in enumerate(["Company Info", "Contact Info", "Logo"]):
         frames[name] = ctk.CTkFrame(main_frame, fg_color="#ffffff", corner_radius=15)
@@ -105,7 +114,7 @@ def open_profile_form():
             nav_frame,
             text=name,
             command=lambda n=name: show_frame(n),
-            fg_color="#007acc" if idx == 0 else "#808080",  # Highlight the first button initially
+            fg_color="#007acc" if idx == 0 else "#808080",
             hover_color="#005a99",
             width=150
         )
@@ -120,7 +129,7 @@ def open_profile_form():
         "Address Line 1": "address_line_1",
         "Address Line 2": "address_line_2",
         "UPI ID": "upi_id",
-        "Pin Code": "pin_code"  # Added pin code label
+        "Pin Code": "pin_code"
     }
 
     entries = {}
@@ -129,7 +138,7 @@ def open_profile_form():
         entry = ctk.CTkEntry(frames["Company Info"], width=450, font=("Arial", 14), fg_color="#eaeaea")
         entry.insert(0, profile[key])
         entry.grid(row=row, column=1, padx=20, pady=15)
-        entry.bind("<Return>", focus_next_widget)  # Bind the <Return> event
+        entry.bind("<Return>", focus_next_widget)
         entries[key] = entry
 
     # Populate "Contact Info" Frame
@@ -145,7 +154,7 @@ def open_profile_form():
         entry = ctk.CTkEntry(frames["Contact Info"], width=400, font=("Arial", 14), fg_color="#eaeaea")
         entry.insert(0, profile[key])
         entry.grid(row=row, column=1, padx=20, pady=15)
-        entry.bind("<Return>", focus_next_widget)  # Bind the <Return> event
+        entry.bind("<Return>", focus_next_widget)
         entries[key] = entry
 
     # Populate "Logo" Frame
@@ -181,7 +190,7 @@ def open_profile_form():
     upload_button.pack(pady=15)
 
     def remove_logo():
-        form_window.logo_path = ""  # Reset the logo path
+        form_window.logo_path = ""
         logo_path_label.configure(text="No logo uploaded")
         logo_path_label.update()
 
@@ -213,7 +222,7 @@ def open_profile_form():
             entries["phone_no"],
             entries["website"],
             entries["facebook_instagram_id"],
-            entries["pin_code"]  # Added pin code entry
+            entries["pin_code"]
         ),
         fg_color="#007acc",
         hover_color="#005a99",
@@ -259,9 +268,53 @@ def play_default_sound():
 
 def save_and_close(form_window, business_name_entry, address_line_1_entry, address_line_2_entry,
                    upi_id_entry, email_entry, phone_no_entry, website_entry, facebook_instagram_id_entry, pin_code_entry):
-    pin_code = pin_code_entry.get()
+    business_name = business_name_entry.get().strip()
+    address_line_1 = address_line_1_entry.get().strip()
+    address_line_2 = address_line_2_entry.get().strip()
+    pin_code = pin_code_entry.get().strip()
+    phone_no = phone_no_entry.get().strip()
+    email = email_entry.get().strip()
+
+    # Check required fields in Company Info
+    if not business_name:
+        messagebox.showerror("Missing Information", "Please fill the required field: Business Name.", parent=form_window)
+        switch_and_focus("Company Info", business_name_entry)
+        return
+
+    if not address_line_1:
+        messagebox.showerror("Missing Information", "Please fill the required field: Address Line 1.", parent=form_window)
+        switch_and_focus("Company Info", address_line_1_entry)
+        return
+
+    if not address_line_2:
+        messagebox.showerror("Missing Information", "Please fill the required field: Address Line 2.", parent=form_window)
+        switch_and_focus("Company Info", address_line_2_entry)
+        return
+
     if not validate_pin_code(pin_code):
         messagebox.showerror("Invalid Pin Code", "Please enter a valid 6-digit pin code.", parent=form_window)
+        switch_and_focus("Company Info", pin_code_entry)
+        return
+
+    # Check required fields in Contact Info
+    if not email:
+        messagebox.showerror("Missing Information", "Please fill the required field: Email.", parent=form_window)
+        switch_and_focus("Contact Info", email_entry)
+        return
+
+    if not validate_email(email):
+        messagebox.showerror("Invalid Email", "Please enter a valid email ending with @gmail.com.", parent=form_window)
+        switch_and_focus("Contact Info", email_entry)
+        return
+
+    if not phone_no:
+        messagebox.showerror("Missing Information", "Please fill the required field: Phone No.", parent=form_window)
+        switch_and_focus("Contact Info", phone_no_entry)
+        return
+
+    if not validate_phone_number(phone_no):
+        messagebox.showerror("Invalid Phone No", "Please enter a valid 10-digit phone number.", parent=form_window)
+        switch_and_focus("Contact Info", phone_no_entry)
         return
 
     # Check if either website or facebook/instagram id is provided
@@ -269,6 +322,7 @@ def save_and_close(form_window, business_name_entry, address_line_1_entry, addre
     facebook_instagram_id = facebook_instagram_id_entry.get().strip()
     if not website and not facebook_instagram_id:
         messagebox.showerror("Missing Information", "Please provide either a Website or Facebook/Instagram ID.", parent=form_window)
+        switch_and_focus("Contact Info", website_entry)
         return
 
     result = messagebox.askyesno(
@@ -290,7 +344,7 @@ def save_and_close(form_window, business_name_entry, address_line_1_entry, addre
             phone_no_entry,
             website_entry,
             facebook_instagram_id_entry,
-            pin_code_entry  # Pass pin code entry
+            pin_code_entry
         )
         close_form(form_window)
 
@@ -301,12 +355,11 @@ def close_form(form_window):
     form_window.destroy()
 
 def is_profile_filled():
-    """
-    Checks if the company name and contact number are provided in the profile.
-    Returns True if both fields are filled, otherwise False.
-    """
     profile = load_profile()
     company_name = profile.get("business_name", "").strip()
     contact_number = profile.get("phone_no", "").strip()
 
     return bool(company_name and contact_number)
+
+# Example usage:
+# open_profile_form()

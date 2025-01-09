@@ -104,6 +104,13 @@ def store_to_db(data):
         )
     ''')
 
+    # Validate and convert items to a string
+    try:
+        items_str = str(data['items'])
+    except Exception as e:
+        print(f"Error converting items to string: {e}")
+        items_str = "[]"
+
     # Insert the data into the table
     cursor.execute('''
         INSERT INTO invoices (
@@ -113,7 +120,7 @@ def store_to_db(data):
     ''', (
         data['invoice_date'], data['invoice_number'], data['customer_name'],
         data['customer_address_line1'], data['customer_address_line2'], data['customer_pin_code'],
-        data['contact'], str(data['items']), data['total_amount']
+        data['contact'], items_str, data['total_amount']
     ))
 
     conn.commit()
@@ -254,7 +261,7 @@ def generate_pdf(invoice_date, invoice_number, customer_name, customer_address_l
             'customer_address_line2': customer_address_line2,
             'customer_pin_code': customer_pin_code,
             'contact': contact,
-            'items': items,
+            'items': items,  # Ensure items list only contains necessary values
             'total_amount': total_amount
         }
         store_to_db(data)

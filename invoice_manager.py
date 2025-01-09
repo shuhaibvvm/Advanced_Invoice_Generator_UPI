@@ -6,25 +6,16 @@ import re
 
 
 def get_next_invoice_number():
-    # Connect to the SQLite database
     conn = sqlite3.connect('invoices.db')
     cursor = conn.cursor()
-
-    # Fetch all invoice numbers from the database
     cursor.execute("SELECT invoice_number FROM invoices")
     invoices = cursor.fetchall()
-
-    # Close the database connection
     conn.close()
 
     if not invoices:
-        # If there are no invoices, return the default invoice number
         return '001'
 
-    # Extract the invoice numbers from the fetched data
     invoice_numbers = [invoice[0] for invoice in invoices]
-
-    # Find the highest numeric invoice number
     max_number = 0
     max_custom_invoice = None
 
@@ -39,7 +30,6 @@ def get_next_invoice_number():
                 if max_custom_invoice is None or (prefix == max_custom_invoice[0] and number > max_custom_invoice[1]):
                     max_custom_invoice = (prefix, number)
 
-    # Determine the next invoice number
     if max_custom_invoice:
         prefix, number = max_custom_invoice
         next_invoice = f"{prefix}{number + 1:03d}"
@@ -50,74 +40,115 @@ def get_next_invoice_number():
 
 
 def open_invoice_manager():
-    # Create a new window
+    # Create the window
     invoice_window = ctk.CTkToplevel()
     invoice_window.title("Invoice Manager")
-    invoice_window.geometry("1000x600")
+    invoice_window.geometry("1200x700")  # Larger default size
+    invoice_window.resizable(True, True)  # Allow resizing (normal window behavior)
 
-    # Bring the window to the front
-    invoice_window.lift()
-    invoice_window.attributes("-topmost", True)
-    invoice_window.after(1, lambda: invoice_window.attributes("-topmost", False))
-
-    # Create a frame for the Treeview
+    # Frame for the main content
     frame = ctk.CTkFrame(invoice_window)
     frame.pack(fill="both", expand=True, padx=20, pady=20)
 
-    # Create a Treeview to display the invoices
+    # Treeview columns
     columns = ("Invoice Number", "Invoice Date", "Customer Name", "Address Line 1", "Address Line 2",
-               "Pin Code", "Contact", "Total Amount")
-    treeview = ttk.Treeview(frame, columns=columns, show="headings", height=20)
+               "Pin Code", "Contact", "Total Amount", "Items")
+    treeview = ttk.Treeview(frame, columns=columns, show="headings")
     treeview.pack(fill="both", expand=True)
 
-    # Define column headings
+    # Configure column headings
     for col in columns:
         treeview.heading(col, text=col)
 
-    # Define column width
-    column_widths = [100, 100, 200, 200, 200, 100, 150, 100]
+    # Set column widths (adjust as needed)
+    column_widths = [100, 100, 200, 200, 200, 100, 150, 100, 200]
     for col, width in zip(columns, column_widths):
         treeview.column(col, width=width, anchor="center")
 
-    # Fetch data from the SQLite database
+    # Add data to the Treeview
     conn = sqlite3.connect("invoices.db")
     cursor = conn.cursor()
     cursor.execute(
-        "SELECT invoice_number, invoice_date, customer_name, customer_address_line1, customer_address_line2, customer_pin_code, contact, total_amount FROM invoices")
-    for row in cursor.fetchall():
-        treeview.insert("", "end", values=row)
+        "SELECT invoice_number, invoice_date, customer_name, customer_address_line1, customer_address_line2, customer_pin_code, contact, total_amount, items FROM invoices"
+    )
+
+    total_value = 0
+    for index, row in enumerate(cursor.fetchall()):
+        tag = 'evenrow' if index % 2 == 0 else 'oddrow'
+        invoice_number, invoice_date, customer_name, address_line1, address_line2, pin_code, contact, total_amount, items = row
+
+        # Format items
+        try:
+            item_list = eval(items)
+            formatted_items = ', '.join([str(item[1]) for item in item_list])
+        except Exception:
+            formatted_items = items
+
+        # Insert into Treeview
+        treeview.insert("", "end", values=(invoice_number, invoice_date, customer_name, address_line1,
+                                           address_line2, pin_code, contact, total_amount, formatted_items), tags=(tag,))
+        total_value += float(total_amount)
     conn.close()
 
-    # Bind the Delete key to the delete_selected_row function
+    # Style Treeview rows
+    treeview.tag_configure('evenrow', background='#E8F0FE')  # Light blue for even rows
+    treeview.tag_configure('oddrow', background='#FFFFFF')   # White for odd rows
+
+    # Add Total Value and Export Button in a bottom frame
+    bottom_frame = ctk.CTkFrame(invoice_window)
+    bottom_frame.pack(fill="x", pady=10, padx=20)
+
+    # Align Total Value and Export Button using grid
+    bottom_frame.grid_columnconfigure(0, weight=0)  # Left side for Total Value
+    bottom_frame.grid_columnconfigure(1, weight=1)  # Spacer
+    bottom_frame.grid_columnconfigure(2, weight=0)  # Right side for Export Button
+
+    # Total Value Label (aligned to the left)
+    total_label = ctk.CTkLabel(
+        bottom_frame,
+        text=f"Total Value: ₹{total_value:.2f}",
+        font=("Arial", 14),
+        fg_color="#1E3A8A",
+        text_color="white",
+        corner_radius=6,
+        width=200
+    )
+    total_label.grid(row=0, column=0, padx=10, pady=10, sticky="w")  # Align left
+
+    # Export Button (aligned to the right)
+    export_button = ctk.CTkButton(
+        bottom_frame,
+        text="Export",
+        command=lambda: export_data(treeview, invoice_window),
+        fg_color="#1E3A8A",
+        text_color="white",
+        corner_radius=6
+    )
+    export_button.grid(row=0, column=2, padx=10, pady=10, sticky="e")  # Align right
+
+    # Treeview delete row on key press (same as before)
     treeview.bind("<Delete>", lambda event: delete_selected_row(treeview))
 
-    # Create an export button
-    export_button = ctk.CTkButton(invoice_window, text="Export", command=lambda: export_data(treeview, invoice_window))
-    export_button.pack(pady=10)
+
 
 
 def export_data(treeview, invoice_window):
-    # Bring the invoice window to the front before showing the file dialog
     invoice_window.lift()
     invoice_window.attributes("-topmost", True)
     invoice_window.after(1, lambda: invoice_window.attributes("-topmost", False))
 
-    # Ask the user where to save the CSV file
     file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
     if not file_path:
-        return  # User canceled the save dialog
+        return
 
     with open(file_path, mode='w', newline='') as file:
         writer = csv.writer(file)
-        # Write the header
         writer.writerow([treeview.heading(col)["text"] for col in treeview["columns"]])
-        # Write the data
         for row in treeview.get_children():
             writer.writerow(treeview.item(row)["values"])
 
     messagebox.showinfo("Export", "Data exported successfully to " + file_path)
 
-    # Bring the invoice window to the front again after exporting
     invoice_window.lift()
     invoice_window.attributes("-topmost", True)
     invoice_window.after(1, lambda: invoice_window.attributes("-topmost", False))
@@ -129,23 +160,16 @@ def delete_selected_row(treeview):
         messagebox.showwarning("Delete", "No item selected")
         return
 
-    # Get the invoice number of the selected row
     invoice_number = treeview.item(selected_item, "values")[0]
-
-    # Confirm deletion
     confirm = messagebox.askyesno("Delete", f"Are you sure you want to delete the invoice {invoice_number}?")
     if not confirm:
         return
 
-    # Delete from the database
     conn = sqlite3.connect("invoices.db")
     cursor = conn.cursor()
     cursor.execute("DELETE FROM invoices WHERE invoice_number = ?", (invoice_number,))
     conn.commit()
     conn.close()
 
-    # Delete from the Treeview
     treeview.delete(selected_item)
     messagebox.showinfo("Delete", f"Invoice {invoice_number} deleted successfully")
-
-

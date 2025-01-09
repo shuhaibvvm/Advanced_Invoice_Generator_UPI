@@ -2,6 +2,50 @@ import customtkinter as ctk
 from tkinter import ttk, messagebox, filedialog
 import sqlite3
 import csv
+import re
+
+def get_next_invoice_number():
+    # Connect to the SQLite database
+    conn = sqlite3.connect('invoices.db')
+    cursor = conn.cursor()
+
+    # Fetch all invoice numbers from the database
+    cursor.execute("SELECT invoice_number FROM invoices")
+    invoices = cursor.fetchall()
+
+    # Close the database connection
+    conn.close()
+
+    if not invoices:
+        # If there are no invoices, return the default invoice number
+        return '001'
+
+    # Extract the invoice numbers from the fetched data
+    invoice_numbers = [invoice[0] for invoice in invoices]
+
+    # Find the highest numeric invoice number
+    max_number = 0
+    max_custom_invoice = None
+
+    for invoice in invoice_numbers:
+        match = re.match(r'(\D*)(\d+)', invoice)
+        if match:
+            prefix, number = match.groups()
+            number = int(number)
+            if prefix == '':
+                max_number = max(max_number, number)
+            else:
+                if max_custom_invoice is None or (prefix == max_custom_invoice[0] and number > max_custom_invoice[1]):
+                    max_custom_invoice = (prefix, number)
+
+    # Determine the next invoice number
+    if max_custom_invoice:
+        prefix, number = max_custom_invoice
+        next_invoice = f"{prefix}{number + 1:03d}"
+    else:
+        next_invoice = f"{max_number + 1:03d}"
+
+    return next_invoice
 
 def open_invoice_manager():
     # Create a new window

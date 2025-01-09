@@ -5,9 +5,10 @@ import customtkinter as ctk
 from profile import open_profile_form, is_profile_filled
 from pdf_generator import generate_pdf
 import re
+import sqlite3
 from tkcalendar import DateEntry
 from shared import items
-from invoice_manager import open_invoice_manager  # Add this import
+from invoice_manager import get_next_invoice_number, open_invoice_manager  # Add this import
 
 # Configure the custom theme for a professional look
 ctk.set_appearance_mode("light")  # Modes: "light", "dark"
@@ -42,6 +43,9 @@ invoice_number_label = ctk.CTkLabel(input_frame, text="Invoice Number", anchor="
 invoice_number_label.grid(row=1, column=0, padx=10, pady=5, sticky="w")
 invoice_number_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Invoice Number", height=30)
 invoice_number_entry.grid(row=1, column=1, padx=10, pady=5)
+
+# Set the next invoice number automatically
+invoice_number_entry.insert(0, get_next_invoice_number())
 
 # Replace the original invoice date entry with a DateEntry
 invoice_date_label = ctk.CTkLabel(input_frame, text="Invoice Date", anchor="w", font=("Helvetica", 16))
@@ -117,6 +121,7 @@ contact_entry.bind("<Return>", lambda event: on_entry_return(event, item_descrip
 item_description_entry.bind("<Return>", lambda event: on_entry_return(event, quantity_entry))
 quantity_entry.bind("<Return>", lambda event: on_entry_return(event, rate_entry))
 rate_entry.bind("<Return>", lambda event: on_entry_return(event, add_item_button))
+
 
 # Add the shortcut key bindings
 app.bind("<Control-a>", lambda event: handle_shortcut(event, add_item_button))
@@ -194,6 +199,10 @@ def add_item_entry(item_description_entry, quantity_entry, rate_entry, treeview)
     if not validate_entries():
         return
 
+    # Ensure the invoice number is set
+    if not invoice_number_entry.get():
+        invoice_number_entry.insert(0, get_next_invoice_number())
+
     try:
         # Get and clean the input values by stripping spaces
         quantity = float(quantity_entry.get().strip()) if quantity_entry.get().strip() else None
@@ -220,6 +229,9 @@ def add_item_entry(item_description_entry, quantity_entry, rate_entry, treeview)
     rate_entry.delete(0, tk.END)
 
     update_total(treeview, total_label)
+
+    # Set focus to the item_description_entry after adding an item
+    item_description_entry.focus_set()
 
 def generate_invoice(treeview):
     # If preview section is empty, show error message
@@ -285,11 +297,6 @@ def clear_all():
     customer_name_entry.delete(0, tk.END)
     customer_address_line1_entry.delete(0, tk.END)
     customer_address_line2_entry.delete(0, tk.END)
-    pin_code_entry.delete(0, tk.END)
-    contact_entry.delete(0, tk.END)
-    item_description_entry.delete(0, tk.END)
-    quantity_entry.delete(0, tk.END)
-    rate_entry.delete(0, tk.END)
 
     # Clear the treeview items
     for row in treeview.get_children():
@@ -299,10 +306,12 @@ def clear_all():
     items.clear()
     total_label.configure(text="Total: ₹0.00")
 
+
 # Clear All button
 clear_all_button = ctk.CTkButton(input_frame, text="Clear All", fg_color="#E74C3C", text_color="#ffffff", height=40,
                                  command=clear_all)
 clear_all_button.grid(row=15, column=0, columnspan=2, pady=10)
+
 
 def setup_treeview(preview_frame):
     # Create a Scrollbar for the Treeview widget
@@ -356,8 +365,10 @@ def setup_treeview(preview_frame):
 
     return treeview, total_label
 
+
 # Integrate the new setup_treeview function into your code
 treeview, total_label = setup_treeview(preview_frame)
+
 
 def on_item_double_click(event):
     selected_item = treeview.selection()
@@ -379,6 +390,7 @@ def on_item_double_click(event):
 
         # Change the button to "Update Item" and update the command to update the selected item
         add_item_button.configure(text="Update Item", command=lambda: update_item(selected_item))
+
 
 def update_item(selected_item):
     # Get the new values from the entry fields
@@ -412,6 +424,7 @@ def update_item(selected_item):
     # Update the total label
     update_total(treeview, total_label)
 
+
 # Function to delete an item from the treeview and confirm the deletion
 def on_item_delete(event):
     selected_item = treeview.selection()
@@ -420,7 +433,8 @@ def on_item_delete(event):
         item_description = treeview.item(selected_item)["values"][1]  # Corrected index to 1
 
         # Ask for confirmation before deleting the item
-        confirm_delete = messagebox.askyesno("Delete Item", f"Are you sure you want to delete the item '{item_description}'?")
+        confirm_delete = messagebox.askyesno("Delete Item",
+                                             f"Are you sure you want to delete the item '{item_description}'?")
 
         if confirm_delete:
             # Delete the item
@@ -435,6 +449,7 @@ def on_item_delete(event):
 
             # Update the total after deletion
             update_total(treeview, total_label)
+
 
 # Bind double-click event to handle item editing
 treeview.bind("<Double-1>", on_item_double_click)

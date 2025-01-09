@@ -243,6 +243,16 @@ profile_button = ctk.CTkButton(input_frame, text="Enter Company Info", fg_color=
 profile_button.grid(row=14, column=0, columnspan=2, pady=10)
 
 def clear_all():
+    # Check if all input fields are empty
+    if (not invoice_number_entry.get() and not invoice_date_entry.get() and
+        not customer_name_entry.get() and not customer_address_line1_entry.get() and
+        not customer_address_line2_entry.get() and not pin_code_entry.get() and
+        not item_description_entry.get() and not quantity_entry.get() and
+        not rate_entry.get() and not treeview.get_children()):
+        # Show dialog box indicating that all fields are empty
+        messagebox.showinfo("All Fields Empty", "All input fields are already empty.")
+        return
+
     # Clear the entry fields
     invoice_number_entry.delete(0, tk.END)
     invoice_date_entry.delete(0, tk.END)

@@ -1,0 +1,312 @@
+import customtkinter as ctk
+import json
+import os
+from tkinter import filedialog
+import tkinter.messagebox as messagebox
+import winsound
+
+profile_file = "user_profile.json"
+default_profile = {
+    "business_name": "",
+    "address_line_1": "",
+    "address_line_2": "",
+    "upi_id": "",
+    "logo": "",
+    "email": "",
+    "phone_no": "",
+    "website": "",
+    "facebook_instagram_id": "",
+    "pin_code": ""  # Added default value for pin code
+}
+
+profile_form_open = False
+sound_played = False  # Flag to track if the sound has been played
+
+def save_profile(business_name_entry, address_line_1_entry, address_line_2_entry, upi_id_entry, logo_path, email_entry, phone_no_entry, website_entry, facebook_instagram_id_entry, pin_code_entry):
+    profile = {
+        "business_name": business_name_entry.get().title().lstrip(),
+        "address_line_1": address_line_1_entry.get().title().lstrip(),
+        "address_line_2": address_line_2_entry.get().title().lstrip(),
+        "upi_id": upi_id_entry.get().lstrip(),
+        "logo": logo_path,
+        "email": email_entry.get().lstrip(),
+        "phone_no": phone_no_entry.get().lstrip(),
+        "website": website_entry.get().lstrip(),
+        "facebook_instagram_id": facebook_instagram_id_entry.get().lstrip(),
+        "pin_code": pin_code_entry.get().strip(),  # Save pin code
+    }
+    with open(profile_file, 'w') as file:
+        json.dump(profile, file)
+
+def load_profile():
+    try:
+        with open(profile_file, 'r') as file:
+            profile = json.load(file)
+            for key, default_value in default_profile.items():
+                if key not in profile:
+                    profile[key] = default_value
+            return profile
+    except (FileNotFoundError, json.JSONDecodeError):
+        return default_profile
+
+def focus_next_widget(event):
+    event.widget.tk_focusNext().focus()
+    return "break"
+
+def validate_pin_code(pin_code):
+    # Basic validation: Check if the pin code is exactly 6 digits
+    return pin_code.isdigit() and len(pin_code) == 6
+
+def open_profile_form():
+    global profile_form_open
+    if profile_form_open:
+        return
+    profile_form_open = True
+    profile = load_profile()
+
+    form_window = ctk.CTkToplevel()
+    form_window.title("Company Profile")
+    form_window.logo_path = profile.get("logo", "")
+    form_window.attributes('-topmost', 1)
+    form_window.protocol("WM_DELETE_WINDOW", lambda: close_form(form_window))
+
+    form_window.geometry("730x725")  # Adjusted window size
+    form_window.resizable(False, False)
+
+    # Main Frame
+    main_frame = ctk.CTkFrame(form_window, fg_color="#f0f0f0", corner_radius=15)
+    main_frame.pack(padx=20, pady=20, fill="both", expand=True)
+
+    # Title Label
+    title_label = ctk.CTkLabel(main_frame, text="Edit Company Profile", font=("Arial", 26, "bold"), text_color="#333333")
+    title_label.pack(pady=(30, 20))
+
+    # Navigation Buttons
+    nav_frame = ctk.CTkFrame(main_frame, fg_color="#eaeaea", corner_radius=15)
+    nav_frame.pack(fill="x", padx=30, pady=10)
+
+    nav_frame.grid_columnconfigure((0, 1, 2), weight=1)
+
+    nav_buttons = {}
+    frames = {}
+
+    def show_frame(frame_name):
+        for name, button in nav_buttons.items():
+            button.configure(fg_color="#808080")  # Reset all buttons
+        nav_buttons[frame_name].configure(fg_color="#007acc")  # Highlight active button
+        for frame in frames.values():
+            frame.pack_forget()  # Hide all frames
+        frames[frame_name].pack(fill="both", expand=True, padx=20, pady=20)  # Show active frame
+
+    # Add navigation buttons
+    for idx, name in enumerate(["Company Info", "Contact Info", "Logo"]):
+        frames[name] = ctk.CTkFrame(main_frame, fg_color="#ffffff", corner_radius=15)
+        nav_buttons[name] = ctk.CTkButton(
+            nav_frame,
+            text=name,
+            command=lambda n=name: show_frame(n),
+            fg_color="#007acc" if idx == 0 else "#808080",  # Highlight the first button initially
+            hover_color="#005a99",
+            width=150
+        )
+        nav_buttons[name].grid(row=0, column=idx, padx=10, pady=10)
+
+    # Initialize the first frame
+    show_frame("Company Info")
+
+    # Populate "Company Info" Frame
+    labels = {
+        "Business Name": "business_name",
+        "Address Line 1": "address_line_1",
+        "Address Line 2": "address_line_2",
+        "UPI ID": "upi_id",
+        "Pin Code": "pin_code"  # Added pin code label
+    }
+
+    entries = {}
+    for row, (label_text, key) in enumerate(labels.items()):
+        ctk.CTkLabel(frames["Company Info"], text=label_text, font=("Arial", 16, "bold"), text_color="#444444").grid(row=row, column=0, padx=20, pady=15, sticky="w")
+        entry = ctk.CTkEntry(frames["Company Info"], width=450, font=("Arial", 14), fg_color="#eaeaea")
+        entry.insert(0, profile[key])
+        entry.grid(row=row, column=1, padx=20, pady=15)
+        entry.bind("<Return>", focus_next_widget)  # Bind the <Return> event
+        entries[key] = entry
+
+    # Populate "Contact Info" Frame
+    labels = {
+        "Email": "email",
+        "Phone No": "phone_no",
+        "Website (optional)": "website",
+        "Facebook/Instagram ID": "facebook_instagram_id"
+    }
+
+    for row, (label_text, key) in enumerate(labels.items()):
+        ctk.CTkLabel(frames["Contact Info"], text=label_text, font=("Arial", 16, "bold"), text_color="#444444").grid(row=row, column=0, padx=20, pady=15, sticky="w")
+        entry = ctk.CTkEntry(frames["Contact Info"], width=400, font=("Arial", 14), fg_color="#eaeaea")
+        entry.insert(0, profile[key])
+        entry.grid(row=row, column=1, padx=20, pady=15)
+        entry.bind("<Return>", focus_next_widget)  # Bind the <Return> event
+        entries[key] = entry
+
+    # Populate "Logo" Frame
+    logo_path_label = ctk.CTkLabel(
+        frames["Logo"],
+        text=f"Logo uploaded: {os.path.basename(profile['logo'])}" if profile['logo'] else "No logo uploaded",
+        font=("Arial", 14),
+        text_color="#555555"
+    )
+    logo_path_label.pack(pady=30)
+
+    def upload_logo_callback():
+        logo_path = filedialog.askopenfilename(
+            parent=form_window,
+            title="Select a logo",
+            filetypes=[("Image Files", "*.png;*.jpg;*.jpeg")]
+        )
+        if logo_path:
+            form_window.logo_path = logo_path
+            file_name = os.path.basename(logo_path)
+            logo_path_label.configure(text=f"Logo uploaded: {file_name}")
+            logo_path_label.update()
+
+    upload_button = ctk.CTkButton(
+        frames["Logo"],
+        text="Upload Logo",
+        command=upload_logo_callback,
+        fg_color="#4caf50",
+        hover_color="#388e3c",
+        width=250,
+        height=40
+    )
+    upload_button.pack(pady=15)
+
+    def remove_logo():
+        form_window.logo_path = ""  # Reset the logo path
+        logo_path_label.configure(text="No logo uploaded")
+        logo_path_label.update()
+
+    remove_button = ctk.CTkButton(
+        frames["Logo"],
+        text="Remove",
+        command=remove_logo,
+        fg_color="#f44336",
+        hover_color="#d32f2f",
+        width=250,
+        height=40
+    )
+    remove_button.pack(pady=15)
+
+    # Save and Close Buttons
+    button_frame = ctk.CTkFrame(main_frame, fg_color="#ffffff")
+    button_frame.pack(padx=20, pady=30, fill="x", side="bottom")
+
+    save_button = ctk.CTkButton(
+        button_frame,
+        text="Save",
+        command=lambda: save_and_close(
+            form_window,
+            entries["business_name"],
+            entries["address_line_1"],
+            entries["address_line_2"],
+            entries["upi_id"],
+            entries["email"],
+            entries["phone_no"],
+            entries["website"],
+            entries["facebook_instagram_id"],
+            entries["pin_code"]  # Added pin code entry
+        ),
+        fg_color="#007acc",
+        hover_color="#005a99",
+        width=230,
+        height=40
+    )
+    save_button.pack(side="left", padx=20, pady=20)
+
+    close_button = ctk.CTkButton(
+        button_frame,
+        text="Close",
+        command=lambda: close_form(form_window),
+        fg_color="#808080",
+        hover_color="#606060",
+        width=230,
+        height=40
+    )
+    close_button.pack(side="right", padx=20, pady=20)
+
+    # Function to handle save shortcut
+    def save_profile_shortcut(event):
+        save_and_close(
+            form_window,
+            entries["business_name"],
+            entries["address_line_1"],
+            entries["address_line_2"],
+            entries["upi_id"],
+            entries["email"],
+            entries["phone_no"],
+            entries["website"],
+            entries["facebook_instagram_id"],
+            entries["pin_code"]
+        )
+
+    # Bind Ctrl+S to save the profile
+    form_window.bind("<Control-s>", save_profile_shortcut)
+
+def play_default_sound():
+    global sound_played
+    if not sound_played:
+        winsound.PlaySound("SystemBeep", winsound.SND_ALIAS)
+        sound_played = True
+
+def save_and_close(form_window, business_name_entry, address_line_1_entry, address_line_2_entry,
+                   upi_id_entry, email_entry, phone_no_entry, website_entry, facebook_instagram_id_entry, pin_code_entry):
+    pin_code = pin_code_entry.get()
+    if not validate_pin_code(pin_code):
+        messagebox.showerror("Invalid Pin Code", "Please enter a valid 6-digit pin code.", parent=form_window)
+        return
+
+    # Check if either website or facebook/instagram id is provided
+    website = website_entry.get().strip()
+    facebook_instagram_id = facebook_instagram_id_entry.get().strip()
+    if not website and not facebook_instagram_id:
+        messagebox.showerror("Missing Information", "Please provide either a Website or Facebook/Instagram ID.", parent=form_window)
+        return
+
+    result = messagebox.askyesno(
+        "Confirm Save",
+        "Do you want to save the changes to your profile?",
+        parent=form_window
+    )
+
+    form_window.after(100, play_default_sound)
+
+    if result:
+        save_profile(
+            business_name_entry,
+            address_line_1_entry,
+            address_line_2_entry,
+            upi_id_entry,
+            form_window.logo_path,
+            email_entry,
+            phone_no_entry,
+            website_entry,
+            facebook_instagram_id_entry,
+            pin_code_entry  # Pass pin code entry
+        )
+        close_form(form_window)
+
+def close_form(form_window):
+    global profile_form_open, sound_played
+    profile_form_open = False
+    sound_played = False  # Reset sound flag
+    form_window.destroy()
+
+def is_profile_filled():
+    """
+    Checks if the company name and contact number are provided in the profile.
+    Returns True if both fields are filled, otherwise False.
+    """
+    profile = load_profile()
+    company_name = profile.get("business_name", "").strip()
+    contact_number = profile.get("phone_no", "").strip()
+
+    return bool(company_name and contact_number)

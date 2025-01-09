@@ -292,38 +292,15 @@ def clear_all():
         return
 
     # Do not clear invoice number and invoice date
-    # Clear the other entry fields and reset to placeholder if empty
-    if customer_name_entry.get():
-        customer_name_entry.delete(0, tk.END)
-        customer_name_entry.insert(0, "Customer Name")
-
-    if customer_address_line1_entry.get():
-        customer_address_line1_entry.delete(0, tk.END)
-        customer_address_line1_entry.insert(0, "Address Line 1")
-
-    if customer_address_line2_entry.get():
-        customer_address_line2_entry.delete(0, tk.END)
-        customer_address_line2_entry.insert(0, "Address Line 2")
-
-    if pin_code_entry.get():
-        pin_code_entry.delete(0, tk.END)
-        pin_code_entry.insert(0, "PIN Code")
-
-    if contact_entry.get():
-        contact_entry.delete(0, tk.END)
-        contact_entry.insert(0, "Contact Number")
-
-    if item_description_entry.get():
-        item_description_entry.delete(0, tk.END)
-        item_description_entry.insert(0, "Item Description")
-
-    if quantity_entry.get():
-        quantity_entry.delete(0, tk.END)
-        quantity_entry.insert(0, "Quantity")
-
-    if rate_entry.get():
-        rate_entry.delete(0, tk.END)
-        rate_entry.insert(0, "Rate")
+    # Clear only user-editable fields
+    customer_name_entry.delete(0, tk.END)
+    customer_address_line1_entry.delete(0, tk.END)
+    customer_address_line2_entry.delete(0, tk.END)
+    pin_code_entry.delete(0, tk.END)
+    contact_entry.delete(0, tk.END)
+    item_description_entry.delete(0, tk.END)
+    quantity_entry.delete(0, tk.END)
+    rate_entry.delete(0, tk.END)
 
     # Clear the treeview items
     for row in treeview.get_children():
@@ -335,8 +312,6 @@ def clear_all():
 
     # Reset focus to the first editable input field
     customer_name_entry.focus_set()
-
-
 # Clear All button
 clear_all_button = ctk.CTkButton(input_frame, text="Clear All", fg_color="#E74C3C", text_color="#ffffff", height=40,
                                  command=clear_all)

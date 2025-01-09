@@ -1,11 +1,11 @@
 from fpdf import FPDF
 import segno
 import os
+import sqlite3
 from tkinter import filedialog
 from profile import load_profile  # Assuming this function is defined elsewhere
-from shared import items  # Import items from shared module
+from shared import items  # Import items from the shared module
 from PIL import Image  # Import Pillow for image resizing
-
 
 class PDF(FPDF):
     def footer(self):
@@ -43,7 +43,6 @@ class PDF(FPDF):
         self.set_font('Arial', 'I', 8)
         self.cell(0, 5, f'Page {self.page_no()}/{self.alias_nb_pages()}', 0, 0, 'C')
 
-
 def resize_logo(input_path, output_path, size=(600, 600)):
     with Image.open(input_path) as img:
         # Preserve aspect ratio using LANCZOS resampling
@@ -61,7 +60,66 @@ def resize_logo(input_path, output_path, size=(600, 600)):
         # Save the resized image
         new_img.save(output_path, format="PNG")
 
-def generate_pdf(invoice_date, invoice_number, customer_name, customer_address_line1, customer_address_line2, customer_pin_code):
+def store_to_db(data):
+    conn = sqlite3.connect('invoices.db')
+    cursor = conn.cursor()
+
+    # List of required columns and their types
+    required_columns = {
+        "invoice_date": "TEXT",
+        "invoice_number": "TEXT",
+        "customer_name": "TEXT",
+        "customer_address_line1": "TEXT",
+        "customer_address_line2": "TEXT",
+        "customer_pin_code": "TEXT",
+        "contact": "TEXT",
+        "items": "TEXT",
+        "total_amount": "REAL"
+    }
+
+    # Check if the table exists and get its columns
+    cursor.execute("PRAGMA table_info(invoices)")
+    columns = cursor.fetchall()
+
+    # Extract column names from the existing table
+    column_names = [column[1] for column in columns]
+
+    # Add missing columns if necessary
+    for column_name, column_type in required_columns.items():
+        if column_name not in column_names:
+            cursor.execute(f"ALTER TABLE invoices ADD COLUMN {column_name} {column_type}")
+
+    # Create table if it doesn't exist with the correct schema
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS invoices (
+            invoice_date TEXT,
+            invoice_number TEXT,
+            customer_name TEXT,
+            customer_address_line1 TEXT,
+            customer_address_line2 TEXT,
+            customer_pin_code TEXT,
+            contact TEXT,
+            items TEXT,
+            total_amount REAL
+        )
+    ''')
+
+    # Insert the data into the table
+    cursor.execute('''
+        INSERT INTO invoices (
+            invoice_date, invoice_number, customer_name, customer_address_line1,
+            customer_address_line2, customer_pin_code, contact, items, total_amount
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (
+        data['invoice_date'], data['invoice_number'], data['customer_name'],
+        data['customer_address_line1'], data['customer_address_line2'], data['customer_pin_code'],
+        data['contact'], str(data['items']), data['total_amount']
+    ))
+
+    conn.commit()
+    conn.close()
+
+def generate_pdf(invoice_date, invoice_number, customer_name, customer_address_line1, customer_address_line2, customer_pin_code, contact):
     profile = load_profile()
 
     pdf = PDF()
@@ -187,3 +245,16 @@ def generate_pdf(invoice_date, invoice_number, customer_name, customer_address_l
     )
     if save_path:
         pdf.output(save_path)
+        # Store to database after PDF is saved
+        data = {
+            'invoice_date': invoice_date,
+            'invoice_number': invoice_number,
+            'customer_name': customer_name,
+            'customer_address_line1': customer_address_line1,
+            'customer_address_line2': customer_address_line2,
+            'customer_pin_code': customer_pin_code,
+            'contact': contact,
+            'items': items,
+            'total_amount': total_amount
+        }
+        store_to_db(data)

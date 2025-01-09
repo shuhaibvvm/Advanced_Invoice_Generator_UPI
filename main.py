@@ -7,6 +7,7 @@ from pdf_generator import generate_pdf
 import re
 from tkcalendar import DateEntry
 from shared import items
+from invoice_manager import open_invoice_manager  # Add this import
 
 # Configure the custom theme for a professional look
 ctk.set_appearance_mode("light")  # Modes: "light", "dark"
@@ -32,7 +33,7 @@ preview_frame = ctk.CTkFrame(main_frame, corner_radius=10, fg_color="#FFFFFF")
 preview_frame.pack(side="right", fill="both", expand=True, padx=15, pady=15)
 
 # Title for the application
-header_label = ctk.CTkLabel(input_frame, text="GST Invoice Generator", font=("Helvetica", 22, "bold"),
+header_label = ctk.CTkLabel(input_frame, text="Invoice Generator", font=("Helvetica", 22, "bold"),
                             text_color="#1F618D")
 header_label.grid(row=0, column=0, columnspan=2, pady=20)
 
@@ -72,6 +73,11 @@ pin_code_label.grid(row=6, column=0, padx=10, pady=5, sticky="w")
 pin_code_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Pin Code", height=30)
 pin_code_entry.grid(row=6, column=1, padx=10, pady=5)
 
+contact_label = ctk.CTkLabel(input_frame, text="Contact", anchor="w", font=("Helvetica", 16))
+contact_label.grid(row=7, column=0, padx=10, pady=5, sticky="w")
+contact_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Contact Number", height=30)
+contact_entry.grid(row=7, column=1, padx=10, pady=5)
+
 item_description_label = ctk.CTkLabel(input_frame, text="Item Description", anchor="w", font=("Helvetica", 16))
 item_description_label.grid(row=8, column=0, padx=10, pady=5, sticky="w")
 item_description_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Item Description", height=30)
@@ -106,7 +112,8 @@ invoice_date_entry.bind("<Return>", lambda event: on_entry_return(event, custome
 customer_name_entry.bind("<Return>", lambda event: on_entry_return(event, customer_address_line1_entry))
 customer_address_line1_entry.bind("<Return>", lambda event: on_entry_return(event, customer_address_line2_entry))
 customer_address_line2_entry.bind("<Return>", lambda event: on_entry_return(event, pin_code_entry))
-pin_code_entry.bind("<Return>", lambda event: on_entry_return(event, item_description_entry))
+pin_code_entry.bind("<Return>", lambda event: on_entry_return(event, contact_entry))
+contact_entry.bind("<Return>", lambda event: on_entry_return(event, item_description_entry))
 item_description_entry.bind("<Return>", lambda event: on_entry_return(event, quantity_entry))
 quantity_entry.bind("<Return>", lambda event: on_entry_return(event, rate_entry))
 rate_entry.bind("<Return>", lambda event: on_entry_return(event, add_item_button))
@@ -116,6 +123,7 @@ app.bind("<Control-a>", lambda event: handle_shortcut(event, add_item_button))
 app.bind("<Control-g>", lambda event: handle_shortcut(event, generate_pdf_button))
 app.bind("<Control-c>", lambda event: handle_shortcut(event, clear_all_button))
 app.bind("<Control-i>", lambda event: handle_shortcut(event, profile_button))
+app.bind("<Control-q>", lambda event: open_invoice_manager())  # Add this binding
 
 def is_valid_date(date):
     # Regex pattern for validating date in DD/MM/YYYY format
@@ -128,6 +136,15 @@ def is_valid_pin_code(pin_code):
     # Regex pattern for validating pin code (assuming a 6-digit pin code)
     pattern = r"^\d{6}$"
     return re.match(pattern, pin_code) is not None
+
+def is_valid_contact(contact):
+    # Check if contact is a valid 10-digit phone number
+    if re.match(r'^\d{10}$', contact):
+        return True
+    # Check if contact is a valid email address ending with @gmail.com
+    elif re.match(r'^[a-zA-Z0-9._%+-]+@gmail\.com$', contact):
+        return True
+    return False
 
 def validate_entries():
     missing_fields = []
@@ -151,12 +168,20 @@ def validate_entries():
     elif not is_valid_pin_code(pin_code):
         messagebox.showerror("Invalid Pin Code", "Please enter a valid 6-digit pin code.")
         return False
+    contact = contact_entry.get().strip()
+    if not contact:
+        missing_fields.append("Contact")
+    elif not is_valid_contact(contact):
+        messagebox.showerror("Invalid Contact", "Please enter a valid 10-digit phone number or a Gmail address ending with @gmail.com.")
+        return False
 
     if missing_fields:
         messagebox.showerror("Missing Fields", f"Please fill in the following fields: {', '.join(missing_fields)}.")
         return False
 
     return True
+
+# The rest of your code remains the same...
 
 def update_total(treeview, total_label):
     total = 0
@@ -221,6 +246,7 @@ def on_generate_pdf_click():
     customer_address_line1 = customer_address_line1_entry.get().lstrip()
     customer_address_line2 = customer_address_line2_entry.get().lstrip()
     pin_code = pin_code_entry.get().strip()
+    contact = contact_entry.get().strip()
 
     item_list = [
         treeview.item(row)["values"] for row in treeview.get_children()
@@ -230,7 +256,7 @@ def on_generate_pdf_click():
         messagebox.showerror("No Items", "Please add at least one item before generating the invoice.")
         return
 
-    generate_pdf(invoice_date, invoice_number, customer_name.title(), customer_address_line1.title(), customer_address_line2.title(), pin_code)
+    generate_pdf(invoice_date, invoice_number, customer_name.title(), customer_address_line1.title(), customer_address_line2.title(), pin_code,contact)
 
 # Generate PDF button
 generate_pdf_button = ctk.CTkButton(input_frame, text="Generate PDF", fg_color="#27AE60", text_color="#ffffff",
@@ -260,6 +286,7 @@ def clear_all():
     customer_address_line1_entry.delete(0, tk.END)
     customer_address_line2_entry.delete(0, tk.END)
     pin_code_entry.delete(0, tk.END)
+    contact_entry.delete(0, tk.END)
     item_description_entry.delete(0, tk.END)
     quantity_entry.delete(0, tk.END)
     rate_entry.delete(0, tk.END)

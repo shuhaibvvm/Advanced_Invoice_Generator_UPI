@@ -269,7 +269,12 @@ def on_generate_pdf_click():
         messagebox.showerror("No Items", "Please add at least one item before generating the invoice.")
         return
 
-    generate_pdf(invoice_date, invoice_number, customer_name.title(), customer_address_line1.title(), customer_address_line2.title(), pin_code,contact)
+    try:
+        generate_pdf(invoice_date, invoice_number, customer_name.title(), customer_address_line1.title(), customer_address_line2.title(), pin_code, contact)
+        messagebox.showinfo("PDF Generated", "The PDF has been successfully generated and saved.")
+        clear_all()  # Clear all input fields after generating the PDF
+    except Exception as e:
+        messagebox.showerror("Error", f"An error occurred while generating the PDF: {e}")
 
 # Generate PDF button
 generate_pdf_button = ctk.CTkButton(input_frame, text="Generate PDF", fg_color="#27AE60", text_color="#ffffff",

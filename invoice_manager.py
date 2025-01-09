@@ -4,6 +4,7 @@ import sqlite3
 import csv
 import re
 
+
 def get_next_invoice_number():
     # Connect to the SQLite database
     conn = sqlite3.connect('invoices.db')
@@ -47,11 +48,17 @@ def get_next_invoice_number():
 
     return next_invoice
 
+
 def open_invoice_manager():
     # Create a new window
     invoice_window = ctk.CTkToplevel()
     invoice_window.title("Invoice Manager")
     invoice_window.geometry("1000x600")
+
+    # Bring the window to the front
+    invoice_window.lift()
+    invoice_window.attributes("-topmost", True)
+    invoice_window.after(1, lambda: invoice_window.attributes("-topmost", False))
 
     # Create a frame for the Treeview
     frame = ctk.CTkFrame(invoice_window)
@@ -75,7 +82,8 @@ def open_invoice_manager():
     # Fetch data from the SQLite database
     conn = sqlite3.connect("invoices.db")
     cursor = conn.cursor()
-    cursor.execute("SELECT invoice_number, invoice_date, customer_name, customer_address_line1, customer_address_line2, customer_pin_code, contact, total_amount FROM invoices")
+    cursor.execute(
+        "SELECT invoice_number, invoice_date, customer_name, customer_address_line1, customer_address_line2, customer_pin_code, contact, total_amount FROM invoices")
     for row in cursor.fetchall():
         treeview.insert("", "end", values=row)
     conn.close()
@@ -84,10 +92,16 @@ def open_invoice_manager():
     treeview.bind("<Delete>", lambda event: delete_selected_row(treeview))
 
     # Create an export button
-    export_button = ctk.CTkButton(invoice_window, text="Export", command=lambda: export_data(treeview))
+    export_button = ctk.CTkButton(invoice_window, text="Export", command=lambda: export_data(treeview, invoice_window))
     export_button.pack(pady=10)
 
-def export_data(treeview):
+
+def export_data(treeview, invoice_window):
+    # Bring the invoice window to the front before showing the file dialog
+    invoice_window.lift()
+    invoice_window.attributes("-topmost", True)
+    invoice_window.after(1, lambda: invoice_window.attributes("-topmost", False))
+
     # Ask the user where to save the CSV file
     file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
     if not file_path:
@@ -102,6 +116,12 @@ def export_data(treeview):
             writer.writerow(treeview.item(row)["values"])
 
     messagebox.showinfo("Export", "Data exported successfully to " + file_path)
+
+    # Bring the invoice window to the front again after exporting
+    invoice_window.lift()
+    invoice_window.attributes("-topmost", True)
+    invoice_window.after(1, lambda: invoice_window.attributes("-topmost", False))
+
 
 def delete_selected_row(treeview):
     selected_item = treeview.selection()
@@ -128,6 +148,9 @@ def delete_selected_row(treeview):
     treeview.delete(selected_item)
     messagebox.showinfo("Delete", f"Invoice {invoice_number} deleted successfully")
 
-# Example usage: open_invoice_manager()
-# Run the following function in your main script to open the invoice manager window.
-# open_invoice_manager()
+
+# Example usage
+if __name__ == "__main__":
+    app = ctk.CTk()
+    open_invoice_manager()
+    app.mainloop()

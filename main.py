@@ -5,6 +5,7 @@ import customtkinter as ctk
 from profile import open_profile_form, is_profile_filled
 from pdf_generator import generate_pdf
 import re
+import datetime
 import sqlite3
 from tkcalendar import DateEntry
 from shared import items
@@ -282,21 +283,47 @@ profile_button.grid(row=14, column=0, columnspan=2, pady=10)
 
 def clear_all():
     # Check if all input fields are empty
-    if (not invoice_number_entry.get() and not invoice_date_entry.get() and
-        not customer_name_entry.get() and not customer_address_line1_entry.get() and
+    if (not customer_name_entry.get() and not customer_address_line1_entry.get() and
         not customer_address_line2_entry.get() and not pin_code_entry.get() and
-        not item_description_entry.get() and not quantity_entry.get() and
-        not rate_entry.get() and not treeview.get_children()):
+        not contact_entry.get() and not item_description_entry.get() and
+        not quantity_entry.get() and not rate_entry.get() and not treeview.get_children()):
         # Show dialog box indicating that all fields are empty
         messagebox.showinfo("All Fields Empty", "All input fields are already empty.")
         return
 
-    # Clear the entry fields
-    invoice_number_entry.delete(0, tk.END)
-    invoice_date_entry.delete(0, tk.END)
-    customer_name_entry.delete(0, tk.END)
-    customer_address_line1_entry.delete(0, tk.END)
-    customer_address_line2_entry.delete(0, tk.END)
+    # Do not clear invoice number and invoice date
+    # Clear the other entry fields and reset to placeholder if empty
+    if customer_name_entry.get():
+        customer_name_entry.delete(0, tk.END)
+        customer_name_entry.insert(0, "Customer Name")
+
+    if customer_address_line1_entry.get():
+        customer_address_line1_entry.delete(0, tk.END)
+        customer_address_line1_entry.insert(0, "Address Line 1")
+
+    if customer_address_line2_entry.get():
+        customer_address_line2_entry.delete(0, tk.END)
+        customer_address_line2_entry.insert(0, "Address Line 2")
+
+    if pin_code_entry.get():
+        pin_code_entry.delete(0, tk.END)
+        pin_code_entry.insert(0, "PIN Code")
+
+    if contact_entry.get():
+        contact_entry.delete(0, tk.END)
+        contact_entry.insert(0, "Contact Number")
+
+    if item_description_entry.get():
+        item_description_entry.delete(0, tk.END)
+        item_description_entry.insert(0, "Item Description")
+
+    if quantity_entry.get():
+        quantity_entry.delete(0, tk.END)
+        quantity_entry.insert(0, "Quantity")
+
+    if rate_entry.get():
+        rate_entry.delete(0, tk.END)
+        rate_entry.insert(0, "Rate")
 
     # Clear the treeview items
     for row in treeview.get_children():
@@ -305,6 +332,9 @@ def clear_all():
     # Clear items list and reset total label
     items.clear()
     total_label.configure(text="Total: ₹0.00")
+
+    # Reset focus to the first editable input field
+    customer_name_entry.focus_set()
 
 
 # Clear All button

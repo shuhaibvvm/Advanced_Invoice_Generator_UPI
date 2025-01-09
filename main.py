@@ -282,6 +282,13 @@ profile_button = ctk.CTkButton(input_frame, text="Enter Company Info", fg_color=
 profile_button.grid(row=14, column=0, columnspan=2, pady=10)
 
 def clear_all():
+    # Check if the button text is "Update Item"
+    if add_item_button.cget('text') == "Update Item":
+        # Show a confirmation dialog box before clearing all fields
+        confirm_clear = messagebox.askyesno("Clear All Fields", "You are currently updating an item. Are you sure you want to clear all input fields?")
+        if not confirm_clear:
+            return
+
     # Check if all input fields are empty
     if (not customer_name_entry.get() and not customer_address_line1_entry.get() and
         not customer_address_line2_entry.get() and not pin_code_entry.get() and
@@ -312,6 +319,12 @@ def clear_all():
 
     # Reset focus to the first editable input field
     customer_name_entry.focus_set()
+
+    # Restore the "Add Item" button functionality
+    add_item_button.configure(text="Add Item", command=lambda: add_item_entry(
+        item_description_entry, quantity_entry, rate_entry, treeview
+    ))
+
 # Clear All button
 clear_all_button = ctk.CTkButton(input_frame, text="Clear All", fg_color="#E74C3C", text_color="#ffffff", height=40,
                                  command=clear_all)

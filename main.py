@@ -123,7 +123,6 @@ item_description_entry.bind("<Return>", lambda event: on_entry_return(event, qua
 quantity_entry.bind("<Return>", lambda event: on_entry_return(event, rate_entry))
 rate_entry.bind("<Return>", lambda event: on_entry_return(event, add_item_button))
 
-
 # Add the shortcut key bindings
 app.bind("<Control-a>", lambda event: handle_shortcut(event, add_item_button))
 app.bind("<Control-g>", lambda event: handle_shortcut(event, generate_pdf_button))
@@ -215,6 +214,10 @@ def add_item_entry(item_description_entry, quantity_entry, rate_entry, treeview)
         rate = float(rate_entry.get().strip()) if rate_entry.get().strip() else None
     except ValueError:
         messagebox.showerror("Invalid Input", "Please enter valid numbers for Quantity and Rate.")
+        return
+
+    if quantity is None or rate is None:
+        messagebox.showerror("Invalid Input", "Please enter both Quantity and Rate.")
         return
 
     # Calculate total amount

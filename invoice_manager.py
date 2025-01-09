@@ -149,8 +149,3 @@ def delete_selected_row(treeview):
     messagebox.showinfo("Delete", f"Invoice {invoice_number} deleted successfully")
 
 
-# Example usage
-if __name__ == "__main__":
-    app = ctk.CTk()
-    open_invoice_manager()
-    app.mainloop()

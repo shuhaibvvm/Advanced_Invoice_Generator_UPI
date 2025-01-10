@@ -2,7 +2,6 @@ from fpdf import FPDF
 import segno
 import os
 import sqlite3
-from tkinter import filedialog
 from profile import load_profile  # Assuming this function is defined elsewhere
 from shared import items  # Import items from the shared module
 from PIL import Image  # Import Pillow for image resizing
@@ -126,7 +125,7 @@ def store_to_db(data):
     conn.commit()
     conn.close()
 
-def generate_pdf(invoice_date, invoice_number, customer_name, customer_address_line1, customer_address_line2, customer_pin_code, contact):
+def generate_pdf(invoice_date, invoice_number, customer_name, customer_address_line1, customer_address_line2, customer_pin_code, contact, file_path):
     profile = load_profile()
 
     pdf = PDF()
@@ -246,23 +245,19 @@ def generate_pdf(invoice_date, invoice_number, customer_name, customer_address_l
 
         os.remove(qr_code_path)  # Clean up the temporary file
 
-    # Save the PDF
-    save_path = filedialog.asksaveasfilename(
-        defaultextension=".pdf", filetypes=[("PDF Files", "*.pdf")]
-    )
-    if save_path:
-        pdf.output(save_path)
-        # Store to database after PDF is saved
-        data = {
-            'invoice_date': invoice_date,
-            'invoice_number': invoice_number,
-            'customer_name': customer_name,
-            'customer_address_line1': customer_address_line1,
-            'customer_address_line2': customer_address_line2,
-            'customer_pin_code': customer_pin_code,
-            'contact': contact,
-            'items': items,  # Ensure items list only contains necessary values
-            'total_amount': total_amount
-        }
-        store_to_db(data)
+    # Save the PDF to the provided file path
+    pdf.output(file_path)
 
+    # Store to database after PDF is saved
+    data = {
+        'invoice_date': invoice_date,
+        'invoice_number': invoice_number,
+        'customer_name': customer_name,
+        'customer_address_line1': customer_address_line1,
+        'customer_address_line2': customer_address_line2,
+        'customer_pin_code': customer_pin_code,
+        'contact': contact,
+        'items': items,  # Ensure items list only contains necessary values
+        'total_amount': total_amount
+    }
+    store_to_db(data)

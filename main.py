@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, filedialog
 from tkinter import ttk
 import customtkinter as ctk
 from profile import open_profile_form, is_profile_filled
@@ -138,9 +138,9 @@ rate_entry.bind("<Return>", lambda event: on_entry_return(event, add_item_button
 # Add the shortcut key bindings
 app.bind("<Control-a>", lambda event: handle_shortcut(event, add_item_button))
 app.bind("<Control-g>", lambda event: handle_shortcut(event, generate_pdf_button))
-app.bind("<Control-c>", lambda event: handle_shortcut(event, clear_all_button))
+app.bind("<Control-r>", lambda event: handle_shortcut(event, clear_all_button))
 app.bind("<Control-i>", lambda event: handle_shortcut(event, profile_button))
-app.bind("<Control-q>", lambda event: open_invoice_manager())  # Add this binding
+app.bind("<Control-d>", lambda event: open_invoice_manager())  # Add this binding
 
 def is_valid_date(date):
     # Regex pattern for validating date in DD/MM/YYYY format
@@ -260,6 +260,7 @@ def generate_invoice(treeview):
         # Proceed with invoice generation
         print("Generating invoice...")
 
+
 def on_generate_pdf_click():
     if not is_profile_filled():
         messagebox.showwarning(
@@ -287,9 +288,16 @@ def on_generate_pdf_click():
         messagebox.showerror("No Items", "Please add at least one item before generating the invoice.")
         return
 
+    # Prompt user to save the PDF file
+    file_path = filedialog.asksaveasfilename(defaultextension=".pdf", filetypes=[("PDF files", "*.pdf")])
+    if not file_path:
+        return  # User canceled the file save dialog
+
     try:
+        # Generate the PDF if the file path is valid
         generate_pdf(invoice_date, invoice_number, customer_name.title(), customer_address_line1.title(),
-                     customer_address_line2.title(), pin_code, contact)
+                     customer_address_line2.title(), pin_code, contact, file_path)
+
         messagebox.showinfo("PDF Generated", "The PDF has been successfully generated and saved.")
 
         # Update the invoice number to the next one
@@ -510,4 +518,3 @@ treeview.bind("<Delete>", on_item_delete)
 
 # Run the application
 app.mainloop()
-

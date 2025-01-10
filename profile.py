@@ -22,6 +22,7 @@ default_profile = {
 profile_form_open = False
 sound_played = False  # Flag to track if the sound has been played
 
+# Save the profile data to a JSON file
 def save_profile(business_name_entry, address_line_1_entry, address_line_2_entry, upi_id_entry, logo_path, email_entry, phone_no_entry, website_entry, facebook_instagram_id_entry, pin_code_entry):
     profile = {
         "business_name": business_name_entry.get().title().lstrip(),
@@ -38,6 +39,7 @@ def save_profile(business_name_entry, address_line_1_entry, address_line_2_entry
     with open(profile_file, 'w') as file:
         json.dump(profile, file)
 
+# Load the profile data from a JSON file
 def load_profile():
     try:
         with open(profile_file, 'r') as file:
@@ -49,23 +51,29 @@ def load_profile():
     except (FileNotFoundError, json.JSONDecodeError):
         return default_profile
 
+# Move focus to the next widget
 def focus_next_widget(event):
     event.widget.tk_focusNext().focus()
     return "break"
 
+# Validate the pin code
 def validate_pin_code(pin_code):
     return pin_code.isdigit() and len(pin_code) == 6
 
+# Validate the phone number
 def validate_phone_number(phone_no):
     return phone_no.isdigit() and len(phone_no) == 10
 
+# Validate the email address
 def validate_email(email):
     return email.endswith("@gmail.com")
 
+# Switch to the specified section and set focus on the specified entry
 def switch_and_focus(section, entry):
     show_frame(section)
     entry.focus_set()
 
+# Show the specified frame
 def show_frame(frame_name):
     for name, button in nav_buttons.items():
         button.configure(fg_color="#808080")
@@ -74,6 +82,7 @@ def show_frame(frame_name):
         frame.pack_forget()
     frames[frame_name].pack(fill="both", expand=True, padx=20, pady=20)
 
+# Open the profile form
 def open_profile_form():
     global profile_form_open, nav_buttons, frames
     if profile_form_open:
@@ -260,12 +269,14 @@ def open_profile_form():
     # Bind Ctrl+S to save the profile
     form_window.bind("<Control-s>", save_profile_shortcut)
 
+# Play the default system sound
 def play_default_sound():
     global sound_played
     if not sound_played:
         winsound.PlaySound("SystemBeep", winsound.SND_ALIAS)
         sound_played = True
 
+# Save and close the profile form
 def save_and_close(form_window, business_name_entry, address_line_1_entry, address_line_2_entry,
                    upi_id_entry, email_entry, phone_no_entry, website_entry, facebook_instagram_id_entry, pin_code_entry):
     business_name = business_name_entry.get().strip()
@@ -325,9 +336,22 @@ def save_and_close(form_window, business_name_entry, address_line_1_entry, addre
         switch_and_focus("Contact Info", website_entry)
         return
 
+    # Gather missing optional fields
+    missing_fields = []
+    if not form_window.logo_path:
+        missing_fields.append("Logo")
+    if not upi_id_entry.get().strip():
+        missing_fields.append("UPI ID")
+
+    # Create a formatted message for the confirmation dialog box
+    confirm_message = "Do you want to save the changes to your profile?"
+    if missing_fields:
+        confirm_message += "\n\nOptional fields not filled:\n"
+        confirm_message += "\n".join(f"- {field}" for field in missing_fields)
+
     result = messagebox.askyesno(
         "Confirm Save",
-        "Do you want to save the changes to your profile?",
+        confirm_message,
         parent=form_window
     )
 
@@ -348,12 +372,14 @@ def save_and_close(form_window, business_name_entry, address_line_1_entry, addre
         )
         close_form(form_window)
 
+# Close the profile form
 def close_form(form_window):
     global profile_form_open, sound_played
     profile_form_open = False
     sound_played = False  # Reset sound flag
     form_window.destroy()
 
+# Check if the profile is filled
 def is_profile_filled():
     profile = load_profile()
     company_name = profile.get("business_name", "").strip()

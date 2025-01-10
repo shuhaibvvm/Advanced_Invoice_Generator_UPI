@@ -265,3 +265,4 @@ def generate_pdf(invoice_date, invoice_number, customer_name, customer_address_l
             'total_amount': total_amount
         }
         store_to_db(data)
+

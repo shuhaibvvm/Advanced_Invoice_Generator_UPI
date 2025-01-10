@@ -29,7 +29,6 @@ header_frame.pack(fill="x")
 logo_label = ctk.CTkLabel(header_frame, text="Ernadix Invoice Generator", font=("Helvetica", 28, "bold"), text_color="white")
 logo_label.pack(pady=20)
 
-
 def create_section_label(frame, text, row):
     label = ctk.CTkLabel(frame, text=text, anchor="w", font=("Helvetica", 18, "bold"), fg_color="#D5DBDB", width=50)
     label.grid(row=row, column=0, columnspan=2, padx=10, pady=(10, 5), sticky="ew")
@@ -69,52 +68,49 @@ invoice_date_entry.grid(row=2, column=1, padx=10, pady=5, ipady=5)
 # Customer details input
 customer_name_label = ctk.CTkLabel(input_frame, text="Customer Name", anchor="w", font=("Arial", 16))
 customer_name_label.grid(row=3, column=0, padx=10, pady=5, sticky="w")
-customer_name_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Customer Name", height=30,border_color="#2980B9")
+customer_name_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Customer Name", height=30, border_color="#2980B9")
 customer_name_entry.grid(row=3, column=1, padx=10, pady=5)
 
 customer_address_line1_label = ctk.CTkLabel(input_frame, text="Address Line 1", anchor="w", font=("Arial", 16))
 customer_address_line1_label.grid(row=4, column=0, padx=10, pady=5, sticky="w")
-customer_address_line1_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Address Line 1", height=30,border_color="#2980B9")
+customer_address_line1_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Address Line 1", height=30, border_color="#2980B9")
 customer_address_line1_entry.grid(row=4, column=1, padx=10, pady=5)
 
 customer_address_line2_label = ctk.CTkLabel(input_frame, text="Address Line 2", anchor="w", font=("Arial", 16))
 customer_address_line2_label.grid(row=5, column=0, padx=10, pady=5, sticky="w")
-customer_address_line2_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Address Line 2", height=30,border_color="#2980B9")
+customer_address_line2_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Address Line 2", height=30, border_color="#2980B9")
 customer_address_line2_entry.grid(row=5, column=1, padx=10, pady=5)
 
 # Add pin code input
 pin_code_label = ctk.CTkLabel(input_frame, text="Pin Code", anchor="w", font=("Arial", 16))
 pin_code_label.grid(row=6, column=0, padx=10, pady=5, sticky="w")
-pin_code_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Pin Code", height=30,border_color="#2980B9")
+pin_code_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Pin Code", height=30, border_color="#2980B9")
 pin_code_entry.grid(row=6, column=1, padx=10, pady=5)
 
 contact_label = ctk.CTkLabel(input_frame, text="Contact", anchor="w", font=("Arial", 16))
 contact_label.grid(row=7, column=0, padx=10, pady=5, sticky="w")
-contact_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Contact Number", height=30,border_color="#2980B9")
+contact_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Contact Number", height=30, border_color="#2980B9")
 contact_entry.grid(row=7, column=1, padx=10, pady=5)
 
 item_description_label = ctk.CTkLabel(input_frame, text="Item Description", anchor="w", font=("Arial", 16))
 item_description_label.grid(row=8, column=0, padx=10, pady=5, sticky="w")
-item_description_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Item Description", height=30,border_color="#2980B9")
+item_description_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Item Description", height=30, border_color="#2980B9")
 item_description_entry.grid(row=8, column=1, padx=10, pady=5)
 
 quantity_label = ctk.CTkLabel(input_frame, text="Quantity", anchor="w", font=("Arial", 16))
 quantity_label.grid(row=9, column=0, padx=10, pady=5, sticky="w")
-quantity_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Quantity", height=30,border_color="#2980B9")
+quantity_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Quantity", height=30, border_color="#2980B9")
 quantity_entry.grid(row=9, column=1, padx=10, pady=5)
 
 rate_label = ctk.CTkLabel(input_frame, text="Rate", anchor="w", font=("Arial", 16))
 rate_label.grid(row=10, column=0, padx=10, pady=5, sticky="w")
-rate_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Rate", height=30,border_color="#2980B9")
+rate_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Rate", height=30, border_color="#2980B9")
 rate_entry.grid(row=10, column=1, padx=10, pady=5)
 
 # Add item button
 add_item_button = ctk.CTkButton(input_frame, text="Add Item", fg_color="#2980B9", text_color="#ffffff", height=35,
-                                command=lambda: add_item_entry(item_description_entry, quantity_entry, rate_entry,
-                                                                treeview))
+                                command=lambda: add_item_entry(item_description_entry, quantity_entry, rate_entry, treeview))
 add_item_button.grid(row=12, column=0, columnspan=2,  pady=(15, 10), padx=10, sticky="ew")
-
-
 
 def on_entry_return(event, next_widget):
     next_widget.focus_set()
@@ -236,11 +232,14 @@ def add_item_entry(item_description_entry, quantity_entry, rate_entry, treeview)
     # Get the serial number for the new item
     sl_no = len(treeview.get_children()) + 1
 
+    # Determine the tag based on the row number
+    tag = 'evenrow' if sl_no % 2 == 0 else ''
+
     # Add the item to the list
     items.append((sl_no, item_description, quantity, rate, round(total_amount, 2)))
 
-    # Insert the item into the treeview (preview section)
-    treeview.insert("", "end", values=(sl_no, item_description, quantity, rate, round(total_amount, 2)))
+    # Insert the item into the treeview (preview section) with the appropriate tag
+    treeview.insert("", "end", values=(sl_no, item_description, quantity, rate, round(total_amount, 2)), tags=(tag,))
 
     # Clear input fields
     item_description_entry.delete(0, tk.END)
@@ -259,7 +258,6 @@ def generate_invoice(treeview):
     else:
         # Proceed with invoice generation
         print("Generating invoice...")
-
 
 def on_generate_pdf_click():
     if not is_profile_filled():
@@ -363,10 +361,13 @@ def clear_all():
         item_description_entry, quantity_entry, rate_entry, treeview
     ))
 
+
 clear_all_button = ctk.CTkButton(input_frame, text="Clear All", fg_color="#E74C3C", text_color="#ffffff", height=40,
                                  command=clear_all)
 # clear_all_button.grid(row=15, column=0, columnspan=2, pady=(15, 10), padx=10, sticky="ew")
 
+
+# Function to setup the Treeview widget (for previewing items)
 # Function to setup the Treeview widget (for previewing items)
 def setup_treeview(preview_frame):
     # Create a Scrollbar for the Treeview widget
@@ -404,7 +405,7 @@ def setup_treeview(preview_frame):
     # Style the Treeview
     style = ttk.Style()
     style.configure("Treeview",
-                    background="#EAEDED",
+                    background="#FFFFFF",
                     foreground="#000000",
                     fieldbackground="#FFFFFF",
                     font=("Helvetica", 14),  # Increase font size for values
@@ -418,7 +419,65 @@ def setup_treeview(preview_frame):
     total_label = ctk.CTkLabel(preview_frame, text="Total: ₹0.00", font=("Helvetica", 20, "bold"), text_color="black")
     total_label.grid(row=1, column=0, columnspan=2, pady=10)
 
+    # Tag configuration for odd and even rows
+    treeview.tag_configure('oddrow', background='#FFFFFF')
+    treeview.tag_configure('evenrow', background='#E8F0FE')
+
     return treeview, total_label
+
+# Integrate the new setup_treeview function into your code
+treeview, total_label = setup_treeview(preview_frame)
+
+def add_item_entry(item_description_entry, quantity_entry, rate_entry, treeview):
+    # Validate entries first (checking the basic form fields)
+    if not validate_entries():
+        return
+
+    # Ensure the invoice number is set
+    if not invoice_number_entry.get():
+        invoice_number_entry.insert(0, get_next_invoice_number())
+
+    item_description = item_description_entry.get().strip()
+    if not item_description:
+        messagebox.showerror("Invalid Input", "Item Description cannot be empty.")
+        return
+
+    try:
+        # Get and clean the input values by stripping spaces
+        quantity = float(quantity_entry.get().strip()) if quantity_entry.get().strip() else None
+        rate = float(rate_entry.get().strip()) if rate_entry.get().strip() else None
+    except ValueError:
+        messagebox.showerror("Invalid Input", "Please enter valid numbers for Quantity and Rate.")
+        return
+
+    if quantity is None or rate is None:
+        messagebox.showerror("Invalid Input", "Please enter both Quantity and Rate.")
+        return
+
+    # Calculate total amount
+    total_amount = quantity * rate
+
+    # Get the serial number for the new item
+    sl_no = len(treeview.get_children()) + 1
+
+    # Determine the tag based on the row number
+    tag = 'evenrow' if sl_no % 2 == 0 else 'oddrow'
+
+    # Add the item to the list
+    items.append((sl_no, item_description, quantity, rate, round(total_amount, 2)))
+
+    # Insert the item into the treeview (preview section) with the appropriate tag
+    treeview.insert("", "end", values=(sl_no, item_description, quantity, rate, round(total_amount, 2)), tags=(tag,))
+
+    # Clear input fields
+    item_description_entry.delete(0, tk.END)
+    quantity_entry.delete(0, tk.END)
+    rate_entry.delete(0, tk.END)
+
+    update_total(treeview, total_label)
+
+    # Set focus to the item_description_entry after adding an item
+    item_description_entry.focus_set()
 
 
 # Integrate the new setup_treeview function into your code

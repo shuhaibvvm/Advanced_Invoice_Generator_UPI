@@ -29,6 +29,12 @@ header_frame.pack(fill="x")
 logo_label = ctk.CTkLabel(header_frame, text="Ernadix Invoice Generator", font=("Helvetica", 28, "bold"), text_color="white")
 logo_label.pack(pady=20)
 
+
+def create_section_label(frame, text, row):
+    label = ctk.CTkLabel(frame, text=text, anchor="w", font=("Helvetica", 18, "bold"), fg_color="#D5DBDB", width=50)
+    label.grid(row=row, column=0, columnspan=2, padx=10, pady=(10, 5), sticky="ew")
+    return label
+
 # Add a frame for the input and preview sections
 main_frame = ctk.CTkFrame(app, corner_radius=15, fg_color="#EAEDED")
 main_frame.pack(fill="both", expand=True, padx=20, pady=20)
@@ -41,11 +47,12 @@ input_frame.pack(side="left", fill="y", padx=15, pady=15)
 preview_frame = ctk.CTkFrame(main_frame, corner_radius=10, fg_color="#FFFFFF")
 preview_frame.pack(side="right", fill="both", expand=True, padx=15, pady=15)
 
+header_1 = create_section_label(input_frame, "Invoice Details", 0)
 
 # Invoice details input
 invoice_number_label = ctk.CTkLabel(input_frame, text="Invoice Number", anchor="w", font=("Arial", 16))
 invoice_number_label.grid(row=1, column=0, padx=10, pady=5, sticky="w")
-invoice_number_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Invoice Number", height=30)
+invoice_number_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Invoice Number", height=30, border_color="#2980B9")
 invoice_number_entry.grid(row=1, column=1, padx=10, pady=5)
 
 # Set the next invoice number automatically
@@ -62,50 +69,52 @@ invoice_date_entry.grid(row=2, column=1, padx=10, pady=5, ipady=5)
 # Customer details input
 customer_name_label = ctk.CTkLabel(input_frame, text="Customer Name", anchor="w", font=("Arial", 16))
 customer_name_label.grid(row=3, column=0, padx=10, pady=5, sticky="w")
-customer_name_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Customer Name", height=30)
+customer_name_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Customer Name", height=30,border_color="#2980B9")
 customer_name_entry.grid(row=3, column=1, padx=10, pady=5)
 
 customer_address_line1_label = ctk.CTkLabel(input_frame, text="Address Line 1", anchor="w", font=("Arial", 16))
 customer_address_line1_label.grid(row=4, column=0, padx=10, pady=5, sticky="w")
-customer_address_line1_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Address Line 1", height=30)
+customer_address_line1_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Address Line 1", height=30,border_color="#2980B9")
 customer_address_line1_entry.grid(row=4, column=1, padx=10, pady=5)
 
 customer_address_line2_label = ctk.CTkLabel(input_frame, text="Address Line 2", anchor="w", font=("Arial", 16))
 customer_address_line2_label.grid(row=5, column=0, padx=10, pady=5, sticky="w")
-customer_address_line2_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Address Line 2", height=30)
+customer_address_line2_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Address Line 2", height=30,border_color="#2980B9")
 customer_address_line2_entry.grid(row=5, column=1, padx=10, pady=5)
 
 # Add pin code input
 pin_code_label = ctk.CTkLabel(input_frame, text="Pin Code", anchor="w", font=("Arial", 16))
 pin_code_label.grid(row=6, column=0, padx=10, pady=5, sticky="w")
-pin_code_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Pin Code", height=30)
+pin_code_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Pin Code", height=30,border_color="#2980B9")
 pin_code_entry.grid(row=6, column=1, padx=10, pady=5)
 
 contact_label = ctk.CTkLabel(input_frame, text="Contact", anchor="w", font=("Arial", 16))
 contact_label.grid(row=7, column=0, padx=10, pady=5, sticky="w")
-contact_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Contact Number", height=30)
+contact_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Contact Number", height=30,border_color="#2980B9")
 contact_entry.grid(row=7, column=1, padx=10, pady=5)
 
 item_description_label = ctk.CTkLabel(input_frame, text="Item Description", anchor="w", font=("Arial", 16))
 item_description_label.grid(row=8, column=0, padx=10, pady=5, sticky="w")
-item_description_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Item Description", height=30)
+item_description_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Item Description", height=30,border_color="#2980B9")
 item_description_entry.grid(row=8, column=1, padx=10, pady=5)
 
 quantity_label = ctk.CTkLabel(input_frame, text="Quantity", anchor="w", font=("Arial", 16))
 quantity_label.grid(row=9, column=0, padx=10, pady=5, sticky="w")
-quantity_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Quantity", height=30)
+quantity_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Quantity", height=30,border_color="#2980B9")
 quantity_entry.grid(row=9, column=1, padx=10, pady=5)
 
 rate_label = ctk.CTkLabel(input_frame, text="Rate", anchor="w", font=("Arial", 16))
 rate_label.grid(row=10, column=0, padx=10, pady=5, sticky="w")
-rate_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Rate", height=30)
+rate_entry = ctk.CTkEntry(input_frame, placeholder_text="Enter Rate", height=30,border_color="#2980B9")
 rate_entry.grid(row=10, column=1, padx=10, pady=5)
 
 # Add item button
 add_item_button = ctk.CTkButton(input_frame, text="Add Item", fg_color="#2980B9", text_color="#ffffff", height=35,
                                 command=lambda: add_item_entry(item_description_entry, quantity_entry, rate_entry,
                                                                 treeview))
-add_item_button.grid(row=12, column=0, columnspan=2, pady=15)
+add_item_button.grid(row=12, column=0, columnspan=2,  pady=(15, 10), padx=10, sticky="ew")
+
+
 
 def on_entry_return(event, next_widget):
     next_widget.focus_set()
@@ -295,12 +304,12 @@ def on_generate_pdf_click():
 # Generate PDF button
 generate_pdf_button = ctk.CTkButton(input_frame, text="Generate PDF", fg_color="#27AE60", text_color="#ffffff",
                                     height=40, command=on_generate_pdf_click)
-generate_pdf_button.grid(row=13, column=0, columnspan=2, pady=10)
+generate_pdf_button.grid(row=13, column=0, columnspan=2, pady=(15, 10), padx=10, sticky="ew")
 
 # Enter Company Info button
 profile_button = ctk.CTkButton(input_frame, text="Enter Company Info", fg_color="#34495E", text_color="#ffffff",
                                height=40, command=open_profile_form)
-profile_button.grid(row=14, column=0, columnspan=2, pady=10)
+profile_button.grid(row=14, column=0, columnspan=2, pady=(15, 10), padx=10, sticky="ew")
 
 def clear_all():
     # Check if the button text is "Update Item"
@@ -348,7 +357,7 @@ def clear_all():
 
 clear_all_button = ctk.CTkButton(input_frame, text="Clear All", fg_color="#E74C3C", text_color="#ffffff", height=40,
                                  command=clear_all)
-clear_all_button.grid(row=15, column=0, columnspan=2, pady=10)
+# clear_all_button.grid(row=15, column=0, columnspan=2, pady=(15, 10), padx=10, sticky="ew")
 
 # Function to setup the Treeview widget (for previewing items)
 def setup_treeview(preview_frame):

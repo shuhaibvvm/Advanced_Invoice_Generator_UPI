@@ -575,5 +575,102 @@ treeview.bind("<Double-1>", on_item_double_click)
 # Bind delete key event to handle item deletion
 treeview.bind("<Delete>", on_item_delete)
 
+
+# Function to save invoice details to the database
+def save_invoice():
+    if not validate_entries():
+        return
+
+    invoice_number = invoice_number_entry.get().strip()
+    invoice_date = invoice_date_entry.get()
+    customer_name = customer_name_entry.get().strip()
+    customer_address_line1 = customer_address_line1_entry.get().strip()
+    customer_address_line2 = customer_address_line2_entry.get().strip()
+    pin_code = pin_code_entry.get().strip()
+    contact = contact_entry.get().strip()
+
+    item_list = [
+        treeview.item(row)["values"] for row in treeview.get_children()
+    ]
+
+    if not item_list:
+        messagebox.showerror("No Items", "Please add at least one item before saving the invoice.")
+        return
+
+    # Ask for confirmation before saving the invoice
+    confirm_save = messagebox.askyesno("Save Invoice", "Are you sure you want to save this invoice?")
+
+    if not confirm_save:
+        return
+
+    try:
+        conn = sqlite3.connect("invoices.db")
+        cursor = conn.cursor()
+
+        # Create the invoices table if it doesn't exist
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS invoices (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                invoice_number TEXT,
+                invoice_date TEXT,
+                customer_name TEXT,
+                customer_address_line1 TEXT,
+                customer_address_line2 TEXT,
+                pin_code TEXT,
+                contact TEXT
+            )
+        ''')
+
+        # Create the items table if it doesn't exist
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS items (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                invoice_id INTEGER,
+                sl_no INTEGER,
+                description TEXT,
+                quantity REAL,
+                rate REAL,
+                total REAL,
+                FOREIGN KEY(invoice_id) REFERENCES invoices(id)
+            )
+        ''')
+
+        # Insert the invoice data into the invoices table
+        cursor.execute('''
+            INSERT INTO invoices (invoice_number, invoice_date, customer_name, customer_address_line1, customer_address_line2, pin_code, contact)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (invoice_number, invoice_date, customer_name, customer_address_line1, customer_address_line2, pin_code, contact))
+
+        invoice_id = cursor.lastrowid
+
+        # Insert the item data into the items table
+        for item in item_list:
+            sl_no, description, quantity, rate, total = item
+            cursor.execute('''
+                INSERT INTO items (invoice_id, sl_no, description, quantity, rate, total)
+                VALUES (?, ?, ?, ?, ?, ?)
+            ''', (invoice_id, sl_no, description, quantity, rate, total))
+
+        conn.commit()
+        conn.close()
+
+        messagebox.showinfo("Invoice Saved", "The invoice has been successfully saved to the database.")
+        # Update the invoice number to the next one
+        next_invoice_number = get_next_invoice_number()
+        invoice_number_entry.delete(0, tk.END)
+        invoice_number_entry.insert(0, next_invoice_number)
+
+        clear_all()
+
+    except Exception as e:
+        messagebox.showerror("Error", f"An error occurred while saving the invoice: {e}")
+
+# Bind the save_button
+save_button = ctk.CTkButton(preview_frame, text="Save Data", fg_color="#3498DB", text_color="#ffffff", height=40,
+                            command=save_invoice)
+save_button.grid(row=1, column=0, sticky="e", pady=10, padx=10)  # Positioned at bottom-right
+save_button = ctk.CTkButton(preview_frame, text="Save Data", fg_color="#3498DB", text_color="#ffffff", height=40,
+                            command=save_invoice)
+save_button.grid(row=1, column=0, sticky="e", pady=10, padx=10)  # Positioned at bottom-right
 # Run the application
 app.mainloop()

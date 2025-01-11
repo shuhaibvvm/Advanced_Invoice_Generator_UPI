@@ -8,8 +8,31 @@ import re
 def get_next_invoice_number():
     conn = sqlite3.connect('invoices.db')
     cursor = conn.cursor()
-    cursor.execute("SELECT invoice_number FROM invoices")
-    invoices = cursor.fetchall()
+
+    try:
+        cursor.execute("SELECT invoice_number FROM invoices")
+    except sqlite3.OperationalError as e:
+        if "no such table" in str(e):
+            cursor.execute("""
+                CREATE TABLE invoices (
+                    invoice_number TEXT PRIMARY KEY,
+                    invoice_date TEXT,
+                    customer_name TEXT,
+                    customer_address_line1 TEXT,
+                    customer_address_line2 TEXT,
+                    customer_pin_code TEXT,
+                    contact TEXT,
+                    total_amount REAL,
+                    items TEXT
+                )
+            """)
+            conn.commit()
+            invoices = []
+        else:
+            raise
+    else:
+        invoices = cursor.fetchall()
+
     conn.close()
 
     if not invoices:

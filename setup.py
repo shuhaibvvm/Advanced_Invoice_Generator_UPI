@@ -1,24 +1,26 @@
-from cx_Freeze import setup, Executable
+import customtkinter as ctk
 
-# Specify the files to include in the build
-build_exe_options = {
-    "include_files": [
-        "my_icon.ico",     # Path to your icon file
-        "invoices.db"      # Path to your database file
-    ]
-}
+def start_app():
+    splash.destroy()  # Close the splash screen
+    app.deiconify()  # Show the main app after loading is complete
 
-# Setup configuration
-setup(
-    name="InvoiceGenerator",
-    version="1.0",
-    description="GST Invoice Generator",
-    options={"build_exe": build_exe_options},
-    executables=[
-        Executable(
-            "main.py",       # Replace with the name of your main Python script
-            base="Win32GUI", # Use "Win32GUI" for GUI applications
-            icon="my_icon.ico"  # Path to the icon file
-        )
-    ]
-)
+# Create the splash screen
+splash = ctk.CTk()
+splash.geometry("400x200")
+splash_label = ctk.CTkLabel(splash, text="Loading...", font=("Helvetica", 18))
+splash_label.pack(expand=True)
+
+# Hide the main app until the splash screen is closed
+app.withdraw()
+
+# Load resources in a separate thread after showing the splash screen
+def load_resources():
+    import time
+    time.sleep(3)  # Simulating resource loading delay
+    start_app()  # Start the main app after loading is done
+
+# Start the resource loading in a separate thread
+import threading
+threading.Thread(target=load_resources).start()
+
+splash.mainloop()

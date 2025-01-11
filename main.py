@@ -34,7 +34,10 @@ icon_path = resource_path("my_icon.ico")
 
 # Create a window for the application
 app = ctk.CTk()
+#========================================================
 
+
+#=======================================================
 try:
     app.iconbitmap(icon_path)  # Use the icon
 except Exception as e:
@@ -59,7 +62,7 @@ def set_scale(scale_option):
     ctk.set_window_scaling(scale)
 
 # Scaling options
-scaling_options = ["0.8", "1.0", "1.2", "1.5"]
+scaling_options = ["0.8","0.9", "1.0", "1.2", "1.5"]
 
 # Adjusting header to include scaling dropdown
 header_frame = ctk.CTkFrame(app, corner_radius=0, fg_color="#1E3A8A", height=100)
@@ -96,9 +99,15 @@ header_1 = create_section_label(input_frame, "Invoice Details", 0)
 # Right section for preview (scrollable)
 preview_frame = ctk.CTkFrame(main_frame, corner_radius=10, fg_color="#FFFFFF")
 preview_frame.pack(side="right", fill="both", expand=True, padx=15, pady=15)
+#=======================================================================================================================================
 
 
 
+
+
+
+
+#======================================================================================================================
 # Invoice details input
 invoice_number_label = ctk.CTkLabel(input_frame, text="Invoice Number", anchor="w", font=("Arial", 16))
 invoice_number_label.grid(row=1, column=0, padx=10, pady=5, sticky="w")
@@ -467,7 +476,7 @@ def setup_treeview(preview_frame):
               foreground=[('selected', '#FFFFFF')])
 
     # Add the total label at the bottom of the preview_frame
-    total_label = ctk.CTkLabel(preview_frame, text="Total: ₹0.00", font=("Helvetica", 20, "bold"), text_color="black")
+    total_label = ctk.CTkLabel(preview_frame, text="Total: ₹0.00", font=("Helvetica", 24, "bold"), text_color="black")
     total_label.grid(row=1, column=0, columnspan=2, pady=10)
 
     # Tag configuration for odd and even rows
@@ -628,6 +637,7 @@ treeview.bind("<Delete>", on_item_delete)
 
 
 # Function to save invoice details to the database
+# Function to save invoice details to the database
 def save_invoice():
     if not validate_entries():
         return
@@ -672,6 +682,15 @@ def save_invoice():
             )
         ''')
 
+        # Ensure all expected columns are present in the invoices table
+        cursor.execute("PRAGMA table_info(invoices)")
+        columns = [column[1] for column in cursor.fetchall()]
+        expected_columns = ["invoice_number", "invoice_date", "customer_name", "customer_address_line1", "customer_address_line2", "pin_code", "contact"]
+        missing_columns = [col for col in expected_columns if col not in columns]
+
+        for col in missing_columns:
+            cursor.execute(f"ALTER TABLE invoices ADD COLUMN {col} TEXT")
+
         # Create the items table if it doesn't exist
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS items (
@@ -706,23 +725,25 @@ def save_invoice():
         conn.close()
 
         messagebox.showinfo("Invoice Saved", "The invoice has been successfully saved to the database.")
+
         # Update the invoice number to the next one
         next_invoice_number = get_next_invoice_number()
         invoice_number_entry.delete(0, tk.END)
         invoice_number_entry.insert(0, next_invoice_number)
 
+        # Clear all entries and the Treeview
         clear_all()
+        for row in treeview.get_children():
+            treeview.delete(row)
 
+    except sqlite3.OperationalError as e:
+        messagebox.showerror("Database Error", f"An SQLite operational error occurred: {e}")
     except Exception as e:
         messagebox.showerror("Error", f"An error occurred while saving the invoice: {e}")
 
-# Bind the save_button
-save_button = ctk.CTkButton(preview_frame, text="Save Data", fg_color="#3498DB", text_color="#ffffff", height=40,
-                            command=save_invoice)
+# Button to save the invoice
+save_button = ctk.CTkButton(preview_frame, text="Save Only", fg_color="#3498DB", text_color="#ffffff", height=40, command=save_invoice)
 save_button.grid(row=1, column=0, sticky="e", pady=10, padx=10)  # Positioned at bottom-right
-save_button = ctk.CTkButton(preview_frame, text="Save Only", fg_color="#3498DB", text_color="#ffffff", height=40,
-                            command=save_invoice)
-save_button.grid(row=1, column=0, sticky="e", pady=10, padx=10)  # Positioned at bottom-right
-# Run the application
+
 app.mainloop()
 

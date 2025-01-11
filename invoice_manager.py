@@ -77,6 +77,9 @@ def open_invoice_manager():
         tag = 'evenrow' if index % 2 == 0 else 'oddrow'
         invoice_number, invoice_date, customer_name, address_line1, address_line2, pin_code, contact, total_amount, items = row
 
+        # Handle None for total_amount
+        total_amount = float(total_amount) if total_amount is not None else 0.0
+
         # Format items
         try:
             item_list = eval(items)
@@ -87,7 +90,7 @@ def open_invoice_manager():
         # Insert into Treeview
         treeview.insert("", "end", values=(invoice_number, invoice_date, customer_name, address_line1,
                                            address_line2, pin_code, contact, total_amount, formatted_items), tags=(tag,))
-        total_value += float(total_amount)
+        total_value += total_amount
     conn.close()
 
     # Style Treeview rows
@@ -128,8 +131,6 @@ def open_invoice_manager():
 
     # Treeview delete row on key press (same as before)
     treeview.bind("<Delete>", lambda event: delete_selected_row(treeview))
-
-
 
 
 def export_data(treeview, invoice_window):

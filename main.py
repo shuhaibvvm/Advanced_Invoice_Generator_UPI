@@ -1,3 +1,5 @@
+import os
+import sys
 import tkinter as tk
 from tkinter import messagebox, filedialog
 from tkinter import ttk
@@ -11,42 +13,91 @@ from tkcalendar import DateEntry
 from shared import items
 from invoice_manager import get_next_invoice_number, open_invoice_manager
 
+
+
 # Configure the custom theme for a professional look
 ctk.set_appearance_mode("light")  # Modes: "light", "dark"
 ctk.set_default_color_theme("dark-blue")  # Themes: "blue", "green", "dark-blue"
 
+
+def resource_path(relative_path):
+    """Get the absolute path to the resource, works for dev and PyInstaller."""
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except AttributeError:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
+icon_path = resource_path("my_icon.ico")
+
 # Create a window for the application
 app = ctk.CTk()
-app.iconbitmap("my_icon.ico")
+
+try:
+    app.iconbitmap(icon_path)  # Use the icon
+except Exception as e:
+    print(f"Error setting icon: {e}")
 app.title("Ernadix Invoice Generator")
 app.geometry("1300x800")
 app.resizable(True, True)
 
-# Add a header with a logo
-header_frame = ctk.CTkFrame(app, corner_radius=0, fg_color="#1E3A8A", height=100)
-header_frame.pack(fill="x")
 
-logo_label = ctk.CTkLabel(header_frame, text="Ernadix Invoice Generator", font=("Helvetica", 28, "bold"), text_color="white")
-logo_label.pack(pady=20)
+
+
 
 def create_section_label(frame, text, row):
     label = ctk.CTkLabel(frame, text=text, anchor="w", font=("Helvetica", 18, "bold"), fg_color="#D5DBDB", width=50)
     label.grid(row=row, column=0, columnspan=2, padx=10, pady=(10, 5), sticky="ew")
     return label
 
+# Add a scaling dropdown to the header
+def set_scale(scale_option):
+    scale = float(scale_option)
+    ctk.set_widget_scaling(scale)
+    ctk.set_window_scaling(scale)
+
+# Scaling options
+scaling_options = ["0.8", "1.0", "1.2", "1.5"]
+
+# Adjusting header to include scaling dropdown
+header_frame = ctk.CTkFrame(app, corner_radius=0, fg_color="#1E3A8A", height=100)
+header_frame.pack(fill="x")
+
+# Logo and application title
+logo_label = ctk.CTkLabel(
+    header_frame,
+    text="Ernadix Invoice Generator",
+    font=("Helvetica", 28, "bold"),
+    text_color="white"
+)
+logo_label.pack(side="left", padx=20, pady=20)
+
+# Scaling dropdown menu
+scaling_menu = ctk.CTkOptionMenu(
+    header_frame,
+    values=scaling_options,
+    command=set_scale
+)
+scaling_menu.set("1.0")  # Default scale
+scaling_menu.pack(side="right", padx=20, pady=20)
+
 # Add a frame for the input and preview sections
 main_frame = ctk.CTkFrame(app, corner_radius=15, fg_color="#EAEDED")
 main_frame.pack(fill="both", expand=True, padx=20, pady=20)
 
-
+# Left section for input fields
 input_frame = ctk.CTkFrame(main_frame, width=600, corner_radius=10, fg_color="#F7F9F9")
 input_frame.pack(side="left", fill="y", padx=15, pady=15)
+
+header_1 = create_section_label(input_frame, "Invoice Details", 0)
 
 # Right section for preview (scrollable)
 preview_frame = ctk.CTkFrame(main_frame, corner_radius=10, fg_color="#FFFFFF")
 preview_frame.pack(side="right", fill="both", expand=True, padx=15, pady=15)
 
-header_1 = create_section_label(input_frame, "Invoice Details", 0)
+
 
 # Invoice details input
 invoice_number_label = ctk.CTkLabel(input_frame, text="Invoice Number", anchor="w", font=("Arial", 16))
@@ -263,7 +314,7 @@ def on_generate_pdf_click():
     if not is_profile_filled():
         messagebox.showwarning(
             "Incomplete Profile",
-            "Please ensure that both the company name and contact number are filled."
+            "Please fill company info details in the 'Enter Company Info' section."
         )
         return
 
@@ -669,8 +720,9 @@ def save_invoice():
 save_button = ctk.CTkButton(preview_frame, text="Save Data", fg_color="#3498DB", text_color="#ffffff", height=40,
                             command=save_invoice)
 save_button.grid(row=1, column=0, sticky="e", pady=10, padx=10)  # Positioned at bottom-right
-save_button = ctk.CTkButton(preview_frame, text="Save Data", fg_color="#3498DB", text_color="#ffffff", height=40,
+save_button = ctk.CTkButton(preview_frame, text="Save Only", fg_color="#3498DB", text_color="#ffffff", height=40,
                             command=save_invoice)
 save_button.grid(row=1, column=0, sticky="e", pady=10, padx=10)  # Positioned at bottom-right
 # Run the application
 app.mainloop()
+

@@ -261,3 +261,17 @@ def generate_pdf(invoice_date, invoice_number, customer_name, customer_address_l
         'total_amount': total_amount
     }
     store_to_db(data)
+
+def save_only_to_db(invoice_date, invoice_number, customer_name, customer_address_line1, customer_address_line2, customer_pin_code, contact, items, total_amount):
+    data = {
+        'invoice_date': invoice_date,
+        'invoice_number': invoice_number,
+        'customer_name': customer_name,
+        'customer_address_line1': customer_address_line1,
+        'customer_address_line2': customer_address_line2,
+        'customer_pin_code': customer_pin_code,
+        'contact': contact,
+        'items': items,
+        'total_amount': total_amount
+    }
+    store_to_db(data)

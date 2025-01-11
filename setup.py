@@ -1,26 +1,54 @@
-import customtkinter as ctk
+def save_only():
+    if not validate_entries():
+        return
 
-def start_app():
-    splash.destroy()  # Close the splash screen
-    app.deiconify()  # Show the main app after loading is complete
+    invoice_number = invoice_number_entry.get().strip()
+    invoice_date = invoice_date_entry.get()
+    customer_name = customer_name_entry.get().strip()
+    customer_address_line1 = customer_address_line1_entry.get().strip()
+    customer_address_line2 = customer_address_line2_entry.get().strip()
+    pin_code = pin_code_entry.get().strip()  # Ensure the pin_code is retrieved correctly
+    contact = contact_entry.get().strip()
 
-# Create the splash screen
-splash = ctk.CTk()
-splash.geometry("400x200")
-splash_label = ctk.CTkLabel(splash, text="Loading...", font=("Helvetica", 18))
-splash_label.pack(expand=True)
+    # Debugging print statement to check pin_code
+    print(f"Pin Code Retrieved in Save Only: {pin_code}")
 
-# Hide the main app until the splash screen is closed
-app.withdraw()
+    if not pin_code:
+        messagebox.showerror("Missing Pin Code", "Please enter a valid pin code before saving.")
+        return
 
-# Load resources in a separate thread after showing the splash screen
-def load_resources():
-    import time
-    time.sleep(3)  # Simulating resource loading delay
-    start_app()  # Start the main app after loading is done
+    item_list = [
+        treeview.item(row)["values"] for row in treeview.get_children()
+    ]
 
-# Start the resource loading in a separate thread
-import threading
-threading.Thread(target=load_resources).start()
+    if not item_list:
+        messagebox.showerror("No Items", "Please add at least one item before saving the invoice.")
+        return
 
-splash.mainloop()
+    # Calculate the total amount, converting each total to float
+    try:
+        total_amount = sum(float(item[4]) for item in item_list)  # Assuming the 5th column is the total
+    except ValueError as e:
+        messagebox.showerror("Error", f"An error occurred while calculating the total amount: {e}")
+        return
+
+    # Ask for confirmation before saving the invoice
+    confirm_save = messagebox.askyesno("Save Invoice", "Are you sure you want to save this invoice?")
+
+    if not confirm_save:
+        return
+
+    try:
+        # Save data to the database without generating the PDF
+        save_only_to_db(invoice_date, invoice_number, customer_name, customer_address_line1, customer_address_line2, pin_code, contact, item_list, total_amount)
+
+        messagebox.showinfo("Invoice Saved", "The invoice has been successfully saved to the database.")
+        # Update the invoice number to the next one
+        next_invoice_number = get_next_invoice_number()
+        invoice_number_entry.delete(0, tk.END)
+        invoice_number_entry.insert(0, next_invoice_number)
+
+        clear_all()
+
+    except Exception as e:
+        messagebox.showerror("Error", f"An error occurred while saving the invoice: {e}")

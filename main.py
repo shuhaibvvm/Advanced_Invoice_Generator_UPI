@@ -1,26 +1,20 @@
 import os
 import sys
+import re
 import tkinter as tk
-from tkinter import messagebox, filedialog
-from tkinter import ttk
+from tkinter import messagebox, filedialog, ttk
 import customtkinter as ctk
 from profile import open_profile_form, is_profile_filled
 from pdf_generator import generate_pdf
-import re
-import datetime
 from pdf_generator import save_only_to_db
-import sqlite3
 from tkcalendar import DateEntry
 from shared import items
 from invoice_manager import get_next_invoice_number, open_invoice_manager
 from license_manager import is_license_valid, store_license_key, validate_license_key
 
-
-
 # Configure the custom theme for a professional look
 ctk.set_appearance_mode("light")  # Modes: "light", "dark"
 ctk.set_default_color_theme("dark-blue")  # Themes: "blue", "green", "dark-blue"
-
 
 def resource_path(relative_path):
     """Get the absolute path to the resource, works for dev and PyInstaller."""
@@ -29,14 +23,13 @@ def resource_path(relative_path):
         base_path = sys._MEIPASS
     except AttributeError:
         base_path = os.path.abspath(".")
-
     return os.path.join(base_path, relative_path)
 
 icon_path = resource_path("my_icon.ico")
 
 # Create a window for the application
 app = ctk.CTk()
-#========================================================
+
 def request_license_key():
     license_window = ctk.CTkToplevel(app)
     license_window.title("Enter License Key")
@@ -71,7 +64,10 @@ if not is_license_valid():
     request_license_key()
 else:
     app.deiconify()
-#=======================================================
+
+# Main application code continues here...
+# Initialize and configure the main application window
+
 try:
     app.iconbitmap(icon_path)  # Use the icon
 except Exception as e:
@@ -79,7 +75,6 @@ except Exception as e:
 app.title("Ernadix Invoice Generator")
 app.geometry("1300x800")
 app.resizable(True, True)
-
 
 
 

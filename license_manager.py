@@ -2,12 +2,24 @@ import sqlite3
 import uuid
 import os
 import csv
+import sys
 
 DATABASE_FILE = 'license_keys.db'
 ENCRYPTION_KEY = 'your-super-secret-encryption-key'  # Example encryption key
 
+def get_resource_path(relative_path):
+    """Get the absolute path to the resource, works for dev and PyInstaller."""
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except AttributeError:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
+DATABASE_PATH = get_resource_path(DATABASE_FILE)
+
 def get_db_connection():
-    conn = sqlite3.connect(DATABASE_FILE)
+    conn = sqlite3.connect(DATABASE_PATH)
     conn.execute(f"PRAGMA key = '{ENCRYPTION_KEY}';")
     return conn
 

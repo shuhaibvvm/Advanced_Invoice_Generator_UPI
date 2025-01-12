@@ -13,6 +13,7 @@ import sqlite3
 from tkcalendar import DateEntry
 from shared import items
 from invoice_manager import get_next_invoice_number, open_invoice_manager
+from license_manager import is_license_valid, store_license_key, validate_license_key
 
 
 
@@ -36,8 +37,40 @@ icon_path = resource_path("my_icon.ico")
 # Create a window for the application
 app = ctk.CTk()
 #========================================================
+def request_license_key():
+    license_window = ctk.CTkToplevel(app)
+    license_window.title("Enter License Key")
+    license_window.geometry("400x200")
+    license_window.grab_set()
 
+    label = ctk.CTkLabel(license_window, text="Please enter your license key:", font=("Helvetica", 14))
+    label.pack(pady=20)
 
+    license_entry = ctk.CTkEntry(license_window, placeholder_text="License Key", height=30, border_color="#2980B9")
+    license_entry.pack(pady=10)
+
+    def submit_license():
+        license_key = license_entry.get().strip()
+        if validate_license_key(license_key):
+            store_license_key(license_key)
+            messagebox.showinfo("License Valid", "License key validated successfully!")
+            license_window.destroy()
+            app.deiconify()
+        else:
+            messagebox.showerror("Invalid License", "The entered license key is invalid or already used on another machine. Please try again.")
+
+    submit_button = ctk.CTkButton(license_window, text="Submit", fg_color="#2980B9", text_color="#ffffff", height=35, command=submit_license)
+    submit_button.pack(pady=20)
+
+    app.withdraw()  # Hide the main window until license is validated
+    license_window.protocol("WM_DELETE_WINDOW", app.quit)  # Ensure the app closes if the license window is closed
+
+# Check license validity on startup
+if not is_license_valid():
+    app.withdraw()  # Hide the main window
+    request_license_key()
+else:
+    app.deiconify()
 #=======================================================
 try:
     app.iconbitmap(icon_path)  # Use the icon

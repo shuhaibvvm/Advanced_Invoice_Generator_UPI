@@ -5,6 +5,7 @@ import csv
 import re
 
 
+
 def get_next_invoice_number():
     conn = sqlite3.connect('invoices.db')
     cursor = conn.cursor()
@@ -157,11 +158,11 @@ def open_invoice_manager():
 
 
 def export_data(treeview, invoice_window):
-    invoice_window.lift()
-    invoice_window.attributes("-topmost", True)
-    invoice_window.after(1, lambda: invoice_window.attributes("-topmost", False))
-
-    file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
+    file_path = filedialog.asksaveasfilename(
+        defaultextension=".csv",
+        filetypes=[("CSV files", "*.csv")],
+        parent=invoice_window  # Set the parent window
+    )
     if not file_path:
         return
 
@@ -171,21 +172,25 @@ def export_data(treeview, invoice_window):
         for row in treeview.get_children():
             writer.writerow(treeview.item(row)["values"])
 
-    messagebox.showinfo("Export", "Data exported successfully to " + file_path)
-
-    invoice_window.lift()
-    invoice_window.attributes("-topmost", True)
-    invoice_window.after(1, lambda: invoice_window.attributes("-topmost", False))
+    messagebox.showinfo(
+        "Export",
+        "Data exported successfully to " + file_path,
+        parent=invoice_window  # Set the parent window
+    )
 
 
 def delete_selected_row(treeview):
     selected_item = treeview.selection()
     if not selected_item:
-        messagebox.showwarning("Delete", "No item selected")
+        messagebox.showwarning("Delete", "No item selected", parent=treeview)
         return
 
     invoice_number = treeview.item(selected_item, "values")[0]
-    confirm = messagebox.askyesno("Delete", f"Are you sure you want to delete the invoice {invoice_number}?")
+    confirm = messagebox.askyesno(
+        "Delete",
+        f"Are you sure you want to delete the invoice {invoice_number}?",
+        parent=treeview
+    )
     if not confirm:
         return
 
@@ -196,4 +201,4 @@ def delete_selected_row(treeview):
     conn.close()
 
     treeview.delete(selected_item)
-    messagebox.showinfo("Delete", f"Invoice {invoice_number} deleted successfully")
+    messagebox.showinfo("Delete", f"Invoice {invoice_number} deleted successfully", parent=treeview)

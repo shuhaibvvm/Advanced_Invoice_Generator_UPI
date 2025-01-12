@@ -4,7 +4,8 @@ import sqlite3
 import csv
 import re
 
-
+# Global variable to keep track of the Invoice Manager window
+invoice_manager_window = None
 
 def get_next_invoice_number():
     conn = sqlite3.connect('invoices.db')
@@ -64,14 +65,21 @@ def get_next_invoice_number():
 
 
 def open_invoice_manager():
+    global invoice_manager_window
+
+    if invoice_manager_window is not None and invoice_manager_window.winfo_exists():
+        # If the window is already open, bring it to the front
+        invoice_manager_window.focus_force()
+        return
+
     # Create the window
-    invoice_window = ctk.CTkToplevel()
-    invoice_window.title("Invoice Manager")
-    invoice_window.geometry("1200x700")  # Larger default size
-    invoice_window.resizable(True, True)  # Allow resizing (normal window behavior)
+    invoice_manager_window = ctk.CTkToplevel()
+    invoice_manager_window.title("Invoice Manager")
+    invoice_manager_window.geometry("1200x700")  # Larger default size
+    invoice_manager_window.resizable(True, True)  # Allow resizing (normal window behavior)
 
     # Frame for the main content
-    frame = ctk.CTkFrame(invoice_window)
+    frame = ctk.CTkFrame(invoice_manager_window)
     frame.pack(fill="both", expand=True, padx=20, pady=20)
 
     # Treeview columns
@@ -122,7 +130,7 @@ def open_invoice_manager():
     treeview.tag_configure('oddrow', background='#FFFFFF')   # White for odd rows
 
     # Add Total Value and Export Button in a bottom frame
-    bottom_frame = ctk.CTkFrame(invoice_window)
+    bottom_frame = ctk.CTkFrame(invoice_manager_window)
     bottom_frame.pack(fill="x", pady=10, padx=20)
 
     # Align Total Value and Export Button using grid
@@ -146,16 +154,15 @@ def open_invoice_manager():
     export_button = ctk.CTkButton(
         bottom_frame,
         text="Export",
-        command=lambda: export_data(treeview, invoice_window),
+        command=lambda: export_data(treeview, invoice_manager_window),
         fg_color="#1E3A8A",
         text_color="white",
         corner_radius=6
     )
     export_button.grid(row=0, column=2, padx=10, pady=10, sticky="e")  # Align right
 
-    # Treeview delete row on key press (same as before)
+    # Treeview delete row on key press
     treeview.bind("<Delete>", lambda event: delete_selected_row(treeview))
-
 
 def export_data(treeview, invoice_window):
     file_path = filedialog.asksaveasfilename(
@@ -177,7 +184,6 @@ def export_data(treeview, invoice_window):
         "Data exported successfully to " + file_path,
         parent=invoice_window  # Set the parent window
     )
-
 
 def delete_selected_row(treeview):
     selected_item = treeview.selection()

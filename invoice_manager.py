@@ -4,8 +4,10 @@ import sqlite3
 import csv
 import re
 
-# Global variable to keep track of the Invoice Manager window
+# Global variable to keep track of the Invoice Manager window and total value label
 invoice_manager_window = None
+total_label = None
+
 
 def get_next_invoice_number():
     conn = sqlite3.connect('invoices.db')
@@ -65,7 +67,7 @@ def get_next_invoice_number():
 
 
 def open_invoice_manager():
-    global invoice_manager_window
+    global invoice_manager_window, total_label
 
     if invoice_manager_window is not None and invoice_manager_window.winfo_exists():
         # If the window is already open, bring it to the front
@@ -104,7 +106,6 @@ def open_invoice_manager():
         "SELECT invoice_number, invoice_date, customer_name, customer_address_line1, customer_address_line2, customer_pin_code, contact, total_amount, items FROM invoices"
     )
 
-    total_value = 0
     for index, row in enumerate(cursor.fetchall()):
         tag = 'evenrow' if index % 2 == 0 else 'oddrow'
         invoice_number, invoice_date, customer_name, address_line1, address_line2, pin_code, contact, total_amount, items = row
@@ -121,13 +122,13 @@ def open_invoice_manager():
 
         # Insert into Treeview
         treeview.insert("", "end", values=(invoice_number, invoice_date, customer_name, address_line1,
-                                           address_line2, pin_code, contact, total_amount, formatted_items), tags=(tag,))
-        total_value += total_amount
+                                           address_line2, pin_code, contact, total_amount, formatted_items),
+                        tags=(tag,))
     conn.close()
 
     # Style Treeview rows
     treeview.tag_configure('evenrow', background='#E8F0FE')  # Light blue for even rows
-    treeview.tag_configure('oddrow', background='#FFFFFF')   # White for odd rows
+    treeview.tag_configure('oddrow', background='#FFFFFF')  # White for odd rows
 
     # Add Total Value and Export Button in a bottom frame
     bottom_frame = ctk.CTkFrame(invoice_manager_window)
@@ -141,7 +142,7 @@ def open_invoice_manager():
     # Total Value Label (aligned to the left)
     total_label = ctk.CTkLabel(
         bottom_frame,
-        text=f"Total Value: ₹{total_value:.2f}",
+        text="Total Value: ₹0.00",
         font=("Arial", 14),
         fg_color="#1E3A8A",
         text_color="white",
@@ -161,8 +162,19 @@ def open_invoice_manager():
     )
     export_button.grid(row=0, column=2, padx=10, pady=10, sticky="e")  # Align right
 
+    # Update the total value label initially
+    update_total_value_label(treeview)
+
     # Treeview delete row on key press
     treeview.bind("<Delete>", lambda event: delete_selected_row(treeview))
+
+
+def update_total_value_label(treeview):
+    total_value = 0
+    for row in treeview.get_children():
+        total_value += float(treeview.item(row)["values"][7])
+    total_label.configure(text=f"Total Value: ₹{total_value:.2f}")
+
 
 def export_data(treeview, invoice_window):
     file_path = filedialog.asksaveasfilename(
@@ -184,6 +196,7 @@ def export_data(treeview, invoice_window):
         "Data exported successfully to " + file_path,
         parent=invoice_window  # Set the parent window
     )
+
 
 def delete_selected_row(treeview):
     selected_item = treeview.selection()
@@ -208,3 +221,6 @@ def delete_selected_row(treeview):
 
     treeview.delete(selected_item)
     messagebox.showinfo("Delete", f"Invoice {invoice_number} deleted successfully", parent=treeview)
+
+    # Update the total value label after deletion
+    update_total_value_label(treeview)

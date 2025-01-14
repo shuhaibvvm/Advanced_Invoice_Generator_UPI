@@ -226,6 +226,8 @@ app.bind("<Control-g>", lambda event: handle_shortcut(event, generate_pdf_button
 app.bind("<Control-r>", lambda event: handle_shortcut(event, clear_all_button))
 app.bind("<Control-i>", lambda event: handle_shortcut(event, profile_button))
 app.bind("<Control-d>", lambda event: open_invoice_manager())  # Add this binding
+app.bind("<Control-s>", lambda event: save_only())  # Add this binding
+
 
 def is_valid_date(date):
     # Regex pattern for validating date in DD/MM/YYYY format
@@ -505,7 +507,7 @@ def setup_treeview(preview_frame):
               foreground=[('selected', '#FFFFFF')])
 
     # Add the total label at the bottom of the preview_frame
-    total_label = ctk.CTkLabel(preview_frame, text="Total: ₹0.00", font=("Helvetica", 24, "bold"), text_color="black")
+    total_label = ctk.CTkLabel(preview_frame, text="Total: ₹0.00", font=("Helvetica", 20, "bold"), text_color="black")
     total_label.grid(row=1, column=0, columnspan=2, pady=10)
 
     # Tag configuration for odd and even rows

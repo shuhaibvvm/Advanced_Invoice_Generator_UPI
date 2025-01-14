@@ -100,7 +100,7 @@ header_frame.pack(fill="x")
 # Logo and application title
 logo_label = ctk.CTkLabel(
     header_frame,
-    text="Ernadix Invoice Generator",
+    text="Ernadix EasyInvoice",
     font=("Helvetica", 28, "bold"),
     text_color="white"
 )
@@ -458,8 +458,6 @@ clear_all_button = ctk.CTkButton(input_frame, text="Clear All", fg_color="#E74C3
 # clear_all_button.grid(row=15, column=0, columnspan=2, pady=(15, 10), padx=10, sticky="ew")
 
 
-# Function to setup the Treeview widget (for previewing items)
-# Function to setup the Treeview widget (for previewing items)
 def setup_treeview(preview_frame):
     # Create a Scrollbar for the Treeview widget
     treeview_scrollbar = ttk.Scrollbar(preview_frame, orient="vertical")
@@ -506,8 +504,8 @@ def setup_treeview(preview_frame):
               background=[('selected', '#2980B9')],
               foreground=[('selected', '#FFFFFF')])
 
-    # Add the total label at the bottom of the preview_frame
-    total_label = ctk.CTkLabel(preview_frame, text="Total: ₹0.00", font=("Helvetica", 20, "bold"), text_color="black")
+    # Add the total label at the bottom of the preview_frame with larger font size
+    total_label = ctk.CTkLabel(preview_frame, text="Total: ₹0.00", font=("Helvetica", 24, "bold"), text_color="black")
     total_label.grid(row=1, column=0, columnspan=2, pady=10)
 
     # Tag configuration for odd and even rows
@@ -515,9 +513,6 @@ def setup_treeview(preview_frame):
     treeview.tag_configure('evenrow', background='#E8F0FE')
 
     return treeview, total_label
-
-# Integrate the new setup_treeview function into your code
-treeview, total_label = setup_treeview(preview_frame)
 
 def add_item_entry(item_description_entry, quantity_entry, rate_entry, treeview):
     # Validate entries first (checking the basic form fields)

@@ -12,10 +12,13 @@ def initialize_firebase():
             'databaseURL': 'https://ernadixlicensemanager-default-rtdb.firebaseio.com/'
         })
 
-# Store license key in Firebase
-def store_license_key(license_key):
+# Store license key and user information in Firebase
+def store_license_key(license_key, user_info):
     ref = db.reference("licenses")
-    ref.child(license_key).set({"valid": True})
+    ref.child(license_key).set({
+        "valid": True,
+        "user_info": user_info
+    })
 
 # Validate a license key online
 def validate_license_key_online(license_key):
@@ -63,6 +66,12 @@ def save_keys_to_file(keys, file_name="license_keys.txt"):
     with open(file_name, "w") as file:
         file.writelines(f"{key}\n" for key in keys)
 
+# Retrieve user information based on license key
+def get_user_info(license_key):
+    ref = db.reference(f"licenses/{license_key}/user_info")
+    user_info = ref.get()
+    return user_info
+
 # Example function to generate and save 1000 keys
 def generate_and_save_keys():
     initialize_firebase()
@@ -82,8 +91,15 @@ def is_license_valid():
 
 # Example usage
 if __name__ == "__main__":
+    initialize_firebase()
     license_key = "your_license_key_here"
+    user_info = {
+        "name": "John Doe",
+        "email": "john.doe@example.com",
+        "phone": "123-456-7890"
+    }
     if validate_license_key(license_key):
-        print("License is valid.")
+        store_license_key(license_key, user_info)
+        print("License is valid and user information stored.")
     else:
         print("License is not valid or has already been used.")

@@ -36,20 +36,42 @@ icon_path = resource_path("my_icon.ico")
 app = ctk.CTk()
 def request_license_key():
     license_window = ctk.CTkToplevel(app)
-    license_window.title("Enter License Key")
-    license_window.geometry("400x200")
+    license_window.title("Enter License Key and User Information")
+    license_window.geometry("400x300")
     license_window.grab_set()
 
-    label = ctk.CTkLabel(license_window, text="Please enter your license key:", font=("Helvetica", 14))
-    label.pack(pady=20)
+    label = ctk.CTkLabel(license_window, text="Please enter your license key and user information:", font=("Helvetica", 14))
+    label.pack(pady=10)
 
     license_entry = ctk.CTkEntry(license_window, placeholder_text="License Key", height=30, border_color="#2980B9")
-    license_entry.pack(pady=10)
+    license_entry.pack(pady=5)
+
+    name_entry = ctk.CTkEntry(license_window, placeholder_text="Name", height=30, border_color="#2980B9")
+    name_entry.pack(pady=5)
+
+    email_entry = ctk.CTkEntry(license_window, placeholder_text="Email", height=30, border_color="#2980B9")
+    email_entry.pack(pady=5)
+
+    phone_entry = ctk.CTkEntry(license_window, placeholder_text="Phone Number", height=30, border_color="#2980B9")
+    phone_entry.pack(pady=5)
 
     def submit_license():
         license_key = license_entry.get().strip()
+        name = name_entry.get().strip()
+        email = email_entry.get().strip()
+        phone = phone_entry.get().strip()
+
+        if not (license_key and name and email and phone):
+            messagebox.showerror("Missing Information", "All fields are required. Please fill in all the details.")
+            return
+
         if validate_license_key(license_key):
-            store_license_key(license_key)
+            user_info = {
+                "name": name,
+                "email": email,
+                "phone": phone
+            }
+            store_license_key(license_key, user_info)
             messagebox.showinfo("License Valid", "License key validated successfully!")
             license_window.destroy()
             app.deiconify()

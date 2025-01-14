@@ -10,8 +10,13 @@ from pdf_generator import save_only_to_db
 from tkcalendar import DateEntry
 from shared import items
 from invoice_manager import get_next_invoice_number, open_invoice_manager
-from license_manager import is_license_valid, store_license_key, validate_license_key
+from license_manager import is_license_valid, store_license_key, validate_license_key, initialize_firebase
 
+# Initialize Firebase
+initialize_firebase()
+
+
+#=================================
 # Configure the custom theme for a professional look
 ctk.set_appearance_mode("light")  # Modes: "light", "dark"
 ctk.set_default_color_theme("dark-blue")  # Themes: "blue", "green", "dark-blue"
@@ -29,7 +34,6 @@ icon_path = resource_path("my_icon.ico")
 
 # Create a window for the application
 app = ctk.CTk()
-
 def request_license_key():
     license_window = ctk.CTkToplevel(app)
     license_window.title("Enter License Key")

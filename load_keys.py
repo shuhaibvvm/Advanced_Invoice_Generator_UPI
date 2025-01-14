@@ -1,6 +1,3 @@
-# load_keys.py
-from license_manager import load_license_keys_from_csv
+from license_manager import generate_and_save_keys
 
-if __name__ == "__main__":
-    load_license_keys_from_csv('license_keys.csv')
-    print("License keys loaded into the database from 'license_keys.csv'.")
+generate_and_save_keys()

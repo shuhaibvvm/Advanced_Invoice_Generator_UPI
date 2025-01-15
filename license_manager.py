@@ -7,10 +7,19 @@ from uuid import uuid4
 # Firebase initialization
 def initialize_firebase():
     if not firebase_admin._apps:
-        cred = credentials.Certificate("ernadixlicensemanager-firebase-adminsdk-hno7l-d2324efdf4.json")
-        firebase_admin.initialize_app(cred, {
-            'databaseURL': 'https://ernadixlicensemanager-default-rtdb.firebaseio.com/'
-        })
+        try:
+            json_path = os.path.join(os.path.dirname(__file__), "ernadixlicensemanager-firebase-adminsdk-hno7l-d2324efdf4.json")
+            with open(json_path) as json_file:
+                cred = credentials.Certificate(json.load(json_file))
+            firebase_admin.initialize_app(cred, {
+                'databaseURL': 'https://ernadixlicensemanager-default-rtdb.firebaseio.com/'
+            })
+        except FileNotFoundError:
+            print("Firebase credentials file not found.")
+        except json.JSONDecodeError:
+            print("Error decoding JSON from the credentials file.")
+        except Exception as e:
+            print(f"An unexpected error occurred: {e}")
 
 # Store license key and user information in Firebase
 def store_license_key(license_key, user_info):
@@ -32,9 +41,14 @@ def validate_license_key_online(license_key):
 # Check if license key is valid locally
 def is_license_valid_locally():
     if os.path.exists("license.json"):
-        with open("license.json", "r") as file:
-            data = json.load(file)
-            return data.get("valid", False)
+        try:
+            with open("license.json", "r") as file:
+                data = json.load(file)
+                return data.get("valid", False)
+        except json.JSONDecodeError:
+            print("Error decoding JSON from the license.json file.")
+        except Exception as e:
+            print(f"An unexpected error occurred: {e}")
     return False
 
 # Save license key locally
@@ -82,11 +96,18 @@ def generate_and_save_keys():
 # Check if license key is valid (used for initial startup check)
 def is_license_valid():
     if os.path.exists("license.json"):
-        with open("license.json", "r") as file:
-            data = json.load(file)
-            license_key = data.get("license_key")
-            if license_key and validate_license_key(license_key):
-                return True
+        try:
+            with open("license.json", "r") as file:
+                content = file.read()
+                print("Contents of license.json:", content)
+                data = json.loads(content)
+                license_key = data.get("license_key")
+                if license_key and validate_license_key(license_key):
+                    return True
+        except json.JSONDecodeError:
+            print("Error decoding JSON from the license.json file.")
+        except Exception as e:
+            print(f"An unexpected error occurred: {e}")
     return False
 
 # Example usage

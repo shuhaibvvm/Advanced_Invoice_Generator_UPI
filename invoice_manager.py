@@ -173,7 +173,7 @@ def update_total_value_label(treeview):
     total_value = 0
     for row in treeview.get_children():
         total_value += float(treeview.item(row)["values"][7])
-    total_label.configure(text=f"Total Value: ₹{total_value:.2f}")
+    total_label.configure(text=f"Total Value: ₹{total_value:,.2f}")
 
 
 def export_data(treeview, invoice_window):

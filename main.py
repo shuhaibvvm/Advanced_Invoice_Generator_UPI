@@ -641,6 +641,12 @@ def update_item(selected_item):
     # Update the selected item in the treeview
     treeview.item(selected_item, values=(sl_no, item_description, quantity, rate, round(total_amount, 2)))
 
+    # Update the items list
+    for index, item in enumerate(items):
+        if item[0] == sl_no:
+            items[index] = (sl_no, item_description, quantity, rate, round(total_amount, 2))
+            break
+
     # Clear the entry fields
     item_description_entry.delete(0, tk.END)
     quantity_entry.delete(0, tk.END)

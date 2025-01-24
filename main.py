@@ -315,7 +315,7 @@ def update_total(treeview, total_label):
     total = 0
     for row in treeview.get_children():
         total += float(treeview.item(row)["values"][4])  # Get the total (last column)
-    total_label.configure(text=f"Total: ₹{round(total, 2)}")
+    total_label.configure(text=f"Total: ₹{total:,.2f}")
 
 def add_item_entry(item_description_entry, quantity_entry, rate_entry, treeview):
     # Validate entries first (checking the basic form fields)
